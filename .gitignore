@@ -1,0 +1,8 @@
+# 忽略所有包含 "Window.py" 的文件
+*Window.py
+*.ui
+
+# 忽略 .idea 文件夹
+.idea/
+__pycache__/
+__pycache__/
