@@ -314,10 +314,13 @@ class EntWindow(QDialog, Ui_EntWindow):
         super(EntWindow, self).__init__(parent)
 
         # 获取当前的窗口标志
-        current_flags = self.windowFlags()
+        #current_flags = self.windowFlags()
         # 设置禁用最大化、最小化和关闭按钮
-        self.setWindowFlags(
-            current_flags & ~QtCore.Qt.WindowMinimizeButtonHint & ~QtCore.Qt.WindowMaximizeButtonHint & ~QtCore.Qt.WindowCloseButtonHint)
+        #self.setWindowFlags(
+        #    current_flags & ~QtCore.Qt.WindowMinimizeButtonHint & ~QtCore.Qt.WindowMaximizeButtonHint & ~QtCore.Qt.WindowCloseButtonHint)
+
+        # 设置无标题栏窗口
+        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 
         self.setupUi(self)
         self.setWindowFlag(QtCore.Qt.Dialog)
@@ -328,11 +331,15 @@ class RecWindow(QDialog, Ui_RecWindow):
     def __init__(self, parent=None):
         super(RecWindow, self).__init__(parent)
 
+
         # 获取当前的窗口标志
-        current_flags = self.windowFlags()
+        #current_flags = self.windowFlags()
         # 设置禁用最大化、最小化和关闭按钮
-        self.setWindowFlags(
-            current_flags & ~QtCore.Qt.WindowMinimizeButtonHint & ~QtCore.Qt.WindowMaximizeButtonHint & ~QtCore.Qt.WindowCloseButtonHint)
+        #self.setWindowFlags(
+        #    current_flags & ~QtCore.Qt.WindowMinimizeButtonHint & ~QtCore.Qt.WindowMaximizeButtonHint & ~QtCore.Qt.WindowCloseButtonHint)
+
+        # 设置无标题栏窗口
+        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 
         self.setupUi(self)
         self.setWindowFlag(QtCore.Qt.Dialog)
