@@ -224,11 +224,11 @@ class Ui_EntWindow(object):
         self.okButton.setText(_translate("EntWindow", "确定"))
 
 
-
 class EntWindow(QDialog, Ui_EntWindow):
     def __init__(self):
         super(EntWindow, self).__init__()
         self.setupUi(self)
+        self.setWindowModality(QtCore.Qt.ApplicationModal)  # 设置窗口模态
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -242,7 +242,7 @@ class MainWindow(QMainWindow):
 
     def openEntWindow(self):
         self.ent_window = EntWindow()
-        self.ent_window.exec_()
+        self.ent_window.exec_()  # 使用 exec_() 以确保 MainWindow 被禁用，EntWindow 始终在最上层
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
