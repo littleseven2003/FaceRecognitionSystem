@@ -215,10 +215,125 @@ class Ui_EntWindow(object):
         self.idLabel.setText(_translate("EntWindow", "学号："))
         self.okButton.setText(_translate("EntWindow", "确定"))
 
+class Ui_RecWindow(object):
+    def setupUi(self, RecWindow):
+        RecWindow.setObjectName("RecWindow")
+        RecWindow.resize(480, 339)
+        self.recLayout = QtWidgets.QVBoxLayout(RecWindow)
+        self.recLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+        self.recLayout.setContentsMargins(50, 20, 50, 50)
+        self.recLayout.setSpacing(20)
+        self.recLayout.setObjectName("recLayout")
+        self.resultLabel = QtWidgets.QLabel(RecWindow)
+        font = QtGui.QFont()
+        font.setFamily("Arial")
+        font.setPointSize(14)
+        self.resultLabel.setFont(font)
+        self.resultLabel.setObjectName("resultLabel")
+        self.recLayout.addWidget(self.resultLabel)
+        self.nameLayout = QtWidgets.QGridLayout()
+        self.nameLayout.setContentsMargins(-1, 20, -1, 20)
+        self.nameLayout.setVerticalSpacing(20)
+        self.nameLayout.setObjectName("nameLayout")
+        self.nameLabel = QtWidgets.QLabel(RecWindow)
+        font = QtGui.QFont()
+        font.setFamily("Arial")
+        font.setPointSize(14)
+        self.nameLabel.setFont(font)
+        self.nameLabel.setObjectName("nameLabel")
+        self.nameLayout.addWidget(self.nameLabel, 0, 0, 1, 1)
+        self.idLabel = QtWidgets.QLabel(RecWindow)
+        font = QtGui.QFont()
+        font.setFamily("Arial")
+        font.setPointSize(14)
+        self.idLabel.setFont(font)
+        self.idLabel.setObjectName("idLabel")
+        self.nameLayout.addWidget(self.idLabel, 1, 0, 1, 1)
+        self.lineEdit = QtWidgets.QLineEdit(RecWindow)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.lineEdit.sizePolicy().hasHeightForWidth())
+        self.lineEdit.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setFamily("Arial")
+        font.setPointSize(12)
+        self.lineEdit.setFont(font)
+        self.lineEdit.setText("")
+        self.lineEdit.setReadOnly(True)
+        self.lineEdit.setObjectName("lineEdit")
+        self.nameLayout.addWidget(self.lineEdit, 0, 1, 1, 1)
+        self.lineEdit_2 = QtWidgets.QLineEdit(RecWindow)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.lineEdit_2.sizePolicy().hasHeightForWidth())
+        self.lineEdit_2.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setFamily("Arial")
+        font.setPointSize(12)
+        self.lineEdit_2.setFont(font)
+        self.lineEdit_2.setReadOnly(True)
+        self.lineEdit_2.setObjectName("lineEdit_2")
+        self.nameLayout.addWidget(self.lineEdit_2, 1, 1, 1, 1)
+        self.recLayout.addLayout(self.nameLayout)
+        self.okButton = QtWidgets.QPushButton(RecWindow)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.okButton.sizePolicy().hasHeightForWidth())
+        self.okButton.setSizePolicy(sizePolicy)
+        self.okButton.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        font = QtGui.QFont()
+        font.setFamily("Arial")
+        font.setPointSize(14)
+        self.okButton.setFont(font)
+        self.okButton.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.okButton.setObjectName("okButton")
+        self.recLayout.addWidget(self.okButton)
+        self.recLayout.setStretch(0, 1)
+        self.recLayout.setStretch(1, 5)
+        self.recLayout.setStretch(2, 1)
+
+        self.retranslateUi(RecWindow)
+        self.okButton.clicked.connect(RecWindow.close) # type: ignore
+        QtCore.QMetaObject.connectSlotsByName(RecWindow)
+
+    def retranslateUi(self, RecWindow):
+        _translate = QtCore.QCoreApplication.translate
+        RecWindow.setWindowTitle(_translate("RecWindow", "人脸识别 - 识别结果"))
+        self.resultLabel.setText(_translate("RecWindow", "识别结果："))
+        self.nameLabel.setText(_translate("RecWindow", "姓名："))
+        self.idLabel.setText(_translate("RecWindow", "学号："))
+        self.okButton.setText(_translate("RecWindow", "确定"))
+
+
 
 class EntWindow(QDialog, Ui_EntWindow):
     def __init__(self, parent=None):
         super(EntWindow, self).__init__(parent)
+
+        # 获取当前的窗口标志
+        current_flags = self.windowFlags()
+        # 设置禁用最大化、最小化和关闭按钮
+        self.setWindowFlags(
+            current_flags & ~QtCore.Qt.WindowMinimizeButtonHint & ~QtCore.Qt.WindowMaximizeButtonHint & ~QtCore.Qt.WindowCloseButtonHint)
+
+        self.setupUi(self)
+        self.setWindowFlag(QtCore.Qt.Dialog)
+        self.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
+
+class RecWindow(QDialog, Ui_RecWindow):
+    def __init__(self, parent=None):
+        super(RecWindow, self).__init__(parent)
+
+        # 获取当前的窗口标志
+        current_flags = self.windowFlags()
+        # 设置禁用最大化、最小化和关闭按钮
+        self.setWindowFlags(
+            current_flags & ~QtCore.Qt.WindowMinimizeButtonHint & ~QtCore.Qt.WindowMaximizeButtonHint & ~QtCore.Qt.WindowCloseButtonHint)
+
         self.setupUi(self)
         self.setWindowFlag(QtCore.Qt.Dialog)
         self.setWindowModality(QtCore.Qt.ApplicationModal)
@@ -233,6 +348,11 @@ class MainWindow(QMainWindow):
 
         # 连接 entButton 的点击信号到槽函数
         self.ui.entButton.clicked.connect(self.openEntWindow)
+        self.ui.recButton.clicked.connect(self.openRecWindow)
+
+    def openRecWindow(self):
+        self.rec_window = RecWindow(self)
+        self.rec_window.exec_()
 
     def openEntWindow(self):
         self.ent_window = EntWindow(self)
