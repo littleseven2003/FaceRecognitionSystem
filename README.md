@@ -10,6 +10,10 @@
 
 杜章豪、于栖浩、康铭淇、陈启祥、唐逸。
 
+### 项目环境
+
+![image-20240913100557452](https://littlesevenimage.cn-sy1.rains3.com/Image/image-20240913100557452.png)
+
 ### 设备使用规范
 
 树莓派局域网SSH访问须知：

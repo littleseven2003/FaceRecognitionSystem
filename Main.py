@@ -69,7 +69,8 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.ui = Window.Ui_MainWindow()
         self.ui.setupUi(self)
-        self.showFullScreen()  # 设置窗口全屏显示
+        # 设置窗口全屏显示
+        self.showFullScreen()
 
         # 连接 entButton 的点击信号到槽函数
         self.ui.entButton.clicked.connect(self.openEntWindow)
@@ -78,7 +79,7 @@ class MainWindow(QMainWindow):
 
     def openRecWindow(self):
         self.rec_window = RecWindow(self)
-        self.rec_window.exec_()
+        self.rec_window.exec_()  # 使用 exec_() 以确保 MainWindow 被禁用，EntWindow 始终在最上层
 
     def openEntWindow(self):
         self.ent_window = EntWindow(self)
@@ -86,7 +87,7 @@ class MainWindow(QMainWindow):
 
     def openMngWindow(self):
         self.rec_window = MngWindow(self)
-        self.rec_window.exec_()
+        self.rec_window.exec_()  # 使用 exec_() 以确保 MainWindow 被禁用，EntWindow 始终在最上层
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
