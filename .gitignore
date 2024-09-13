@@ -5,4 +5,5 @@
 # 忽略 .idea 文件夹
 .idea/
 __pycache__/
-__pycache__/
+
+!Window.py
