@@ -1,4 +1,4 @@
-﻿# 人脸识别系统
+# 人脸识别系统
 
 ### 项目信息
 
@@ -12,7 +12,7 @@
 
 ### 项目环境
 
-![image-20240913100557452](https://littlesevenimage.cn-sy1.rains3.com/Image/image-20240913100557452.png)
+![image-20240913135937772](https://littlesevenimage.cn-sy1.rains3.com/Image/image-20240913135937772.png)
 
 ### 设备使用规范
 

@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 import sys
+
+import cv2
+from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtGui import QPixmap, QImage
+
 import Window
 
 from PyQt5 import QtCore
@@ -72,10 +77,42 @@ class MainWindow(QMainWindow):
         # 设置窗口全屏显示
         self.showFullScreen()
 
+        # 初始化摄像头
+        self.cap = cv2.VideoCapture(0)  # 0表示默认摄像头
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.updateFrame)
+        self.timer.start(20)  # 每20毫秒更新一次
+
+        # 设置 cameraWidget 风格
+        self.ui.camLabel.setStyleSheet("border: 2px solid black; background-color: black;")
+
         # 连接 entButton 的点击信号到槽函数
         self.ui.entButton.clicked.connect(self.openEntWindow)
         self.ui.recButton.clicked.connect(self.openRecWindow)
         self.ui.mngButton.clicked.connect(self.openMngWindow)
+
+    def updateFrame(self):
+        ret, frame = self.cap.read()
+        if ret:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            height, width, channel = frame.shape
+            bytesPerLine = 3 * width
+            qImg = QImage(frame.data, width, height, bytesPerLine, QImage.Format_RGB888)
+
+            if qImg.isNull():
+                print("Warning: QImage is null")
+            else:
+                pixmap = QPixmap.fromImage(qImg)
+                scaled_pixmap = pixmap.scaled(self.ui.camLabel.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                self.ui.camLabel.setPixmap(scaled_pixmap)
+        else:
+            print("Error: Could not read frame from camera.")
+            self.timer.stop()
+
+    def closeEvent(self, event):
+        self.cap.release()
+        super(MainWindow, self).closeEvent(event)
+
 
     def openRecWindow(self):
         self.rec_window = RecWindow(self)
