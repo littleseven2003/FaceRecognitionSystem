@@ -10,6 +10,9 @@ import Window
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog
 
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+
 
 class EntWindow(QDialog, Window.Ui_EntWindow):
     def __init__(self, parent=None):
@@ -95,6 +98,21 @@ class MainWindow(QMainWindow):
         ret, frame = self.cap.read()
         if ret:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            # 人脸检测
+            gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+            faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+            # 在图像中绘制略大于人脸的矩形框（蓝色边框）
+            for (x, y, w, h) in faces:
+                # 调整边框大小，使其略大于人脸
+                padding = 20  # 调整这个值以改变边框的大小
+                x1 = max(x - padding, 0)
+                y1 = max(y - padding, 0)
+                x2 = min(x + w + padding, frame.shape[1])
+                y2 = min(y + h + padding, frame.shape[0])
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)  # 颜色为蓝色 (0, 0, 255)
+
             height, width, channel = frame.shape
             bytesPerLine = 3 * width
             qImg = QImage(frame.data, width, height, bytesPerLine, QImage.Format_RGB888)
@@ -108,6 +126,8 @@ class MainWindow(QMainWindow):
         else:
             print("Error: Could not read frame from camera.")
             self.timer.stop()
+
+
 
     def closeEvent(self, event):
         self.cap.release()
@@ -127,6 +147,10 @@ class MainWindow(QMainWindow):
         self.rec_window.exec_()  # 使用 exec_() 以确保 MainWindow 被禁用，EntWindow 始终在最上层
 
 if __name__ == "__main__":
+
+
+
+
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
