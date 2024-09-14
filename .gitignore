@@ -6,6 +6,6 @@
 .idea/
 __pycache__/
 test/
-.data/
+data/
 
 !Window.py
