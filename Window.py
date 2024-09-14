@@ -39,7 +39,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.loadingBar.sizePolicy().hasHeightForWidth())
         self.loadingBar.setSizePolicy(sizePolicy)
-        self.loadingBar.setProperty("value", 24)
+        self.loadingBar.setProperty("value", 0)
         self.loadingBar.setObjectName("loadingBar")
         self.BarLayout.addWidget(self.loadingBar)
         self.loadingLabel = QtWidgets.QLabel(self.centralwidget)
@@ -173,18 +173,18 @@ class Ui_EntWindow(object):
         self.nameEdit.setText("")
         self.nameEdit.setObjectName("nameEdit")
         self.nameLayout.addWidget(self.nameEdit, 0, 1, 1, 1)
-        self.lineEdit_2 = QtWidgets.QLineEdit(EntWindow)
+        self.idEdit = QtWidgets.QLineEdit(EntWindow)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineEdit_2.sizePolicy().hasHeightForWidth())
-        self.lineEdit_2.setSizePolicy(sizePolicy)
+        sizePolicy.setHeightForWidth(self.idEdit.sizePolicy().hasHeightForWidth())
+        self.idEdit.setSizePolicy(sizePolicy)
         font = QtGui.QFont()
         font.setFamily("Arial")
         font.setPointSize(12)
-        self.lineEdit_2.setFont(font)
-        self.lineEdit_2.setObjectName("lineEdit_2")
-        self.nameLayout.addWidget(self.lineEdit_2, 1, 1, 1, 1)
+        self.idEdit.setFont(font)
+        self.idEdit.setObjectName("idEdit")
+        self.nameLayout.addWidget(self.idEdit, 1, 1, 1, 1)
         self.entLayout.addLayout(self.nameLayout)
         self.okButton = QtWidgets.QPushButton(EntWindow)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
@@ -204,7 +204,6 @@ class Ui_EntWindow(object):
         self.entLayout.setStretch(1, 1)
 
         self.retranslateUi(EntWindow)
-        self.okButton.clicked.connect(EntWindow.close) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(EntWindow)
 
     def retranslateUi(self, EntWindow):
@@ -295,7 +294,6 @@ class Ui_RecWindow(object):
         self.recLayout.setStretch(2, 1)
 
         self.retranslateUi(RecWindow)
-        self.okButton.clicked.connect(RecWindow.close) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(RecWindow)
 
     def retranslateUi(self, RecWindow):
@@ -342,7 +340,7 @@ class Ui_MngWindow(object):
         self.tableWidget.horizontalHeader().setDefaultSectionSize(200)
         self.tableWidget.horizontalHeader().setMinimumSectionSize(150)
         self.tableWidget.verticalHeader().setDefaultSectionSize(60)
-        self.tableWidget.verticalHeader().setMinimumSectionSize(50)
+        self.tableWidget.verticalHeader().setMinimumSectionSize(60)
         self.mngLayout.addWidget(self.tableWidget)
         self.funLayout = QtWidgets.QVBoxLayout()
         self.funLayout.setContentsMargins(-1, 100, -1, 100)
@@ -424,7 +422,6 @@ class Ui_MngWindow(object):
         self.mngLayout.setStretch(1, 2)
 
         self.retranslateUi(MngWindow)
-        self.backButton.clicked.connect(MngWindow.close) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(MngWindow)
 
     def retranslateUi(self, MngWindow):
