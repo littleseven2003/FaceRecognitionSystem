@@ -12,7 +12,13 @@
 
 ### 项目环境
 
-![image-20240913135937772](https://littlesevenimage.cn-sy1.rains3.com/Image/image-20240913135937772.png)
+- Raspberry Pi OS with desktop (64-bit)
+- Python 3.11
+- PyQt5 5.15.9
+- OpenCV-Python 4.10.0
+- OpenCV-Python-Contrib 4.10.0
+
+>  推荐使用conda虚拟环境。
 
 ### 设备使用规范
 

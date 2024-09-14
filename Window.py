@@ -1,6 +1,5 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -444,4 +443,5 @@ class Ui_MngWindow(object):
         self.idLabel.setText(_translate("MngWindow", "学号："))
         self.changeButton.setText(_translate("MngWindow", "修改"))
         self.backButton.setText(_translate("MngWindow", "返回"))
+
 
