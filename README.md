@@ -18,6 +18,8 @@
 - OpenCV-Python 4.10.0
 - OpenCV-Python-Contrib 4.10.0
 
+>  推荐使用conda虚拟环境。
+
 ### 设备使用规范
 
 树莓派局域网SSH访问须知：
