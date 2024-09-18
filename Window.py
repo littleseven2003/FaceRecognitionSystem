@@ -441,4 +441,28 @@ class Ui_MngWindow(object):
         self.changeButton.setText(_translate("MngWindow", "修改"))
         self.backButton.setText(_translate("MngWindow", "返回"))
 
+class Ui_TrainWindow(object):
+    def setupUi(self, TrainWindow):
+        TrainWindow.setObjectName("TrainWindow")
+        TrainWindow.resize(335, 222)
+        self.trainLayout = QtWidgets.QVBoxLayout(TrainWindow)
+        self.trainLayout.setObjectName("trainLayout")
+        self.trainLaber = QtWidgets.QLabel(TrainWindow)
+        font = QtGui.QFont()
+        font.setFamily("Arial")
+        font.setPointSize(26)
+        self.trainLaber.setFont(font)
+        self.trainLaber.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.trainLaber.setAlignment(QtCore.Qt.AlignCenter)
+        self.trainLaber.setObjectName("trainLaber")
+        self.trainLayout.addWidget(self.trainLaber)
+
+        self.retranslateUi(TrainWindow)
+        QtCore.QMetaObject.connectSlotsByName(TrainWindow)
+
+    def retranslateUi(self, TrainWindow):
+        _translate = QtCore.QCoreApplication.translate
+        TrainWindow.setWindowTitle(_translate("TrainWindow", "人脸识别 - 训练中"))
+        self.trainLaber.setText(_translate("TrainWindow", "正在训练中..."))
+
 
