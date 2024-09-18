@@ -9,10 +9,11 @@ from PyQt5.QtCore import QTimer, Qt, pyqtSignal, QThread
 from PyQt5.QtGui import QPixmap, QImage
 import Window
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox
 
 
-face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+face_cascade = cv2.CascadeClassifier(
+    cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
 Cap_index = 0  # 0 表示默认摄像头（通常是内置摄像头或第一个外接摄像头）
 Path = os.getcwd()  # 获取当前工作目录路径
@@ -22,6 +23,7 @@ Data_Num = 0  # 人脸数据总数，用于统计并管理已录入的人脸数�
 
 camera = None
 data_manager = None
+
 
 class DataManager:
 
@@ -37,7 +39,8 @@ class DataManager:
         global Data_Num  # 使用全局变量 Data_Num
 
         # 统计 data 文件夹下的子文件夹
-        subfolders = [f.name for f in os.scandir(Data_Path) if f.is_dir()]  # 获取所有子文件夹的名称
+        subfolders = [f.name for f in os.scandir(
+            Data_Path) if f.is_dir()]  # 获取所有子文件夹的名称
         num_subfolders = len(subfolders)  # 计算子文件夹数量
 
         # 创建或覆盖 .data 文件
@@ -45,19 +48,22 @@ class DataManager:
         with open(data_file_path, 'w', encoding='utf-8') as f:  # 打开 .data 文件，准备写入
             f.write(f"{num_subfolders}\n")  # 写入子文件夹数量
             for subfolder in subfolders:  # 遍历每个子文件夹
-                subfolder_data_file_path = os.path.join(Data_Path, subfolder, f"{subfolder}.data")  # 定义子文件夹内 .data 文件路径
+                subfolder_data_file_path = os.path.join(
+                    Data_Path, subfolder, f"{subfolder}.data")  # 定义子文件夹内 .data 文件路径
                 if os.path.exists(subfolder_data_file_path):  # 检查子文件夹内的 .data 文件是否存在
                     with open(subfolder_data_file_path, 'r',
                               encoding='utf-8') as subfolder_data_file:  # 打开子文件夹内的 .data 文件
                         lines = subfolder_data_file.readlines()  # 读取所有行
                         if len(lines) >= 2:  # 确保至少有两行数据
                             # 读取前两行并用 "_" 连接
-                            combined_line = f"{lines[0].strip()}_{lines[1].strip()}"  # 合并前两行并去除空白字符
+                            # 合并前两行并去除空白字符
+                            combined_line = f"{lines[0].strip()}_{lines[1].strip()}"
                             f.write(f"{combined_line}\n")  # 写入合并后的行
 
         # 读取 .data 文件的第一行并将其写入全局变量
-        with open(data_file_path, 'r', encoding='utf-8') as f:  # 打开 .data 文件，准备读取
-            Data_Num = int(f.readline().strip())  # 读取第一行并转换为整数，赋值给全局变量 Data_Num
+        with open(data_file_path, 'r', encoding='utf-8') as f:  # 打开 .data 文件，准备读取s
+            # 读取第一行并转换为整数，赋值给全局变量 Data_Num
+            Data_Num = int(f.readline().strip())
 
     def CreateTmpImgDir(self):
         tmpImgPath = os.path.join(Data_Path, "_tmp_img_")  # 定义临时图片文件夹的路径
@@ -67,22 +73,49 @@ class DataManager:
             shutil.rmtree(tmpImgPath)  # 删除现有的临时图片文件夹以及其内容
             os.mkdir(tmpImgPath)  # 重新创建一个新的临时图片文件夹
 
-    def WriteTmpPicDir(self, picName, picId):
+    def WriteTmpPicDir(self, picName, picId) -> bool:
+        if picName == "":
+            return False
+        if picId == "":
+            return False
         tmpImgPath = os.path.join(Data_Path, "_tmp_img_")  # 定义临时图片文件夹的路径
+        # 打开并读取 .data 文件
+        with open('data/.data', 'r', encoding='utf-8') as file:
+            lines = file.readlines()
+        # 第一行是总行数，跳过它
+        total_lines = int(lines[0].strip())  # 获取第一行的行数
+        # 创建一个空的字符串数组用于存储数字
+        numbers_list = []
+        # 从第二行开始处理
+        for line in lines[1:]:
+            # 去除换行符并按照下划线分隔
+            line = line.strip()
+            if '_' in line:
+                number, name = line.split('_', 1)  # 1 表示只分割一次，防止名字里有下划线
+                numbers_list.append(number)  # 将数字添加到字符串数组中
+            else:
+                print(f"Invalid format: {line}")
+        for stunu in numbers_list:
+            if picId == stunu:
+                # raise Exception("The picId already exists.")
+                return False
         new_folder_name = f"{picId}"  # 生成新的文件夹名称，以 picId 命名
         new_folder_path = os.path.join(Data_Path, new_folder_name)  # 定义新文件夹的路径
 
         if os.path.exists(tmpImgPath):  # 检查临时图片文件夹是否存在
             os.rename(tmpImgPath, new_folder_path)  # 将临时图片文件夹重命名为新文件夹
         else:  # 如果临时图片文件夹不存在
-            raise FileNotFoundError(f"The folder {tmpImgPath} does not exist.")  # 抛出文件不存在的异常
+            raise FileNotFoundError(
+                f"The folder {tmpImgPath} does not exist.")  # 抛出文件不存在的异常
 
-        data_file_path = os.path.join(new_folder_path, f"{picId}.data")  # 定义新文件夹内 .data 文件的路径
+        data_file_path = os.path.join(
+            new_folder_path, f"{picId}.data")  # 定义新文件夹内 .data 文件的路径
         with open(data_file_path, 'w', encoding='utf-8') as data_file:  # 打开 .data 文件，准备写入
             data_file.write(f"{picId}\n")  # 写入 picId
             data_file.write(f"{picName}\n")  # 写入 picName
 
         self.updateData()  # 调用 updateData 方法更新数据
+        return True
 
 
 class Camera:
@@ -101,7 +134,8 @@ class Camera:
         ret, frame = self.cap.read()  # 读取摄像头的一帧图像，ret 表示是否成功，frame 为读到的图像
         if ret:  # 如果成功读取到图像
             # 将图像从 BGR 转换为 RGB
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # 将图像的颜色空间从 BGR 转换为 RGB
+            # 将图像的颜色空间从 BGR 转换为 RGB
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             return frame  # 返回转换后的图像
         else:  # 如果未能成功读取图像
             raise Exception("Could not read frame from camera")  # 抛出异常
@@ -124,7 +158,9 @@ class Camera:
         status = 0  # 初始化状态变量为0
         for (x, y, w, h) in faces:  # 遍历检测到的人脸
             # 保存图像，把RGB图片看成二维数组来检测人脸区域，这里是保存在data缓冲文件夹内
-            cv2.imwrite(f"./data/_tmp_img_/User.{index}.jpg", frame[y:y + h, x:x + w])  # 将人脸区域保存为图像文件
+            # 将人脸区域保存为图像文件
+            cv2.imwrite(
+                f"./data/_tmp_img_/User.{index}.jpg", frame[y:y + h, x:x + w])
             status = 1  # 如果成功保存图像，状态变量设置为1
         return status  # 返回状态变量
 
@@ -133,16 +169,14 @@ class Camera:
         self.cap.release()
 
 
-
-
 class EntWindow(QDialog, Window.Ui_EntWindow):
     def __init__(self, parent=None):
         super(EntWindow, self).__init__(parent)
 
         # 获取当前的窗口标志
-        #current_flags = self.windowFlags()
+        # current_flags = self.windowFlags()
         # 设置禁用最大化、最小化和关闭按钮
-        #self.setWindowFlags(
+        # self.setWindowFlags(
         #    current_flags & ~QtCore.Qt.WindowMinimizeButtonHint & ~QtCore.Qt.WindowMaximizeButtonHint & ~QtCore.Qt.WindowCloseButtonHint)
 
         # 设置无标题栏窗口
@@ -158,23 +192,35 @@ class EntWindow(QDialog, Window.Ui_EntWindow):
     def inputName(self):
         self.picName = self.nameEdit.text()  # 从文本编辑框获取用户输入的姓名
         self.picId = self.idEdit.text()  # 从文本编辑框获取用户输入的ID
-        data_manager.WriteTmpPicDir(self.picName, self.picId)  # 将姓名和ID写入临时图片目录
-        self.accept()  # 接受输入并关闭当前窗口
+        success = data_manager.WriteTmpPicDir(
+            self.picName, self.picId)  # 将姓名和ID写入临时图片目录
+        if success:
+            self.close()  # 关闭当前窗口
+
+        else:
+            self.delete()
+            QMessageBox.warning(self, "警告", "输入信息有误，请重新输入")  # 显示警告消息框
+            return
+        # self.accept()  # 接受输入并关闭当前窗口
 
         # 在关闭 EntWindow 后弹出 TrainWindow
-        train_window = TrainWindow(self.picName, self.picId)  # 创建TrainWindow窗口实例
+        train_window = TrainWindow(
+            self.picName, self.picId)  # 创建TrainWindow窗口实例
         train_window.exec_()  # 以模态形式显示TrainWindow窗口
+
+    def delete(self):
+        self.nameEdit.clear()
+        self.idEdit.clear()
 
 
 class RecWindow(QDialog, Window.Ui_RecWindow):
     def __init__(self, parent=None):
         super(RecWindow, self).__init__(parent)
 
-
         # 获取当前的窗口标志
-        #current_flags = self.windowFlags()
+        # current_flags = self.windowFlags()
         # 设置禁用最大化、最小化和关闭按钮
-        #self.setWindowFlags(
+        # self.setWindowFlags(
         #    current_flags & ~QtCore.Qt.WindowMinimizeButtonHint & ~QtCore.Qt.WindowMaximizeButtonHint & ~QtCore.Qt.WindowCloseButtonHint)
 
         # 设置无标题栏窗口
@@ -188,13 +234,16 @@ class RecWindow(QDialog, Window.Ui_RecWindow):
 
         self.okButton.clicked.connect(self.close)  # type: ignore
         # self.ui.okButton.clicked.connect(self.close)
+
+
 class TrainWorker(QThread):
     training_finished = pyqtSignal(bool)  # 定义一个信号，表示训练是否完成
 
     def __init__(self, folder, model_file_path):
         super().__init__()  # 调用父类的构造函数
         self.folder = folder.encode('utf-8').decode('utf-8')  # 处理文件夹路径，确保编码正确
-        self.model_file_path = model_file_path.encode('utf-8').decode('utf-8')  # 处理模型文件路径，确保编码正确
+        self.model_file_path = model_file_path.encode(
+            'utf-8').decode('utf-8')  # 处理模型文件路径，确保编码正确
 
     def run(self):
         try:
@@ -214,14 +263,17 @@ class TrainWorker(QThread):
         labels = []  # 初始化标签列表
 
         # 获取所有图片文件
-        image_files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]  # 列出文件夹中的所有图片文件
+        image_files = [f for f in os.listdir(folder_path) if os.path.isfile(
+            os.path.join(folder_path, f))]  # 列出文件夹中的所有图片文件
 
         for image_file in image_files:
             if image_file.endswith(".jpg"):  # 检查文件是否以.jpg结尾
                 image_path = os.path.join(folder_path, image_file)  # 构造图片路径
-                image_path = image_path.encode('utf-8').decode('utf-8')  # 处理图片路径，确保编码正确
+                image_path = image_path.encode(
+                    'utf-8').decode('utf-8')  # 处理图片路径，确保编码正确
 
-                image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)  # 以灰度图像形式读取图片
+                image = cv2.imread(
+                    image_path, cv2.IMREAD_GRAYSCALE)  # 以灰度图像形式读取图片
 
                 # 检查图像是否成功加载
                 if image is None:
@@ -231,7 +283,9 @@ class TrainWorker(QThread):
                 try:
                     label = int(image_file.split('.')[1])  # 从文件名中提取标签
                 except ValueError as e:
-                    print(f"Failed to extract label from filename: {image_file}")  # 打印提取标签失败的文件名
+                    # 打印提取标签失败的文件名
+                    print(
+                        f"Failed to extract label from filename: {image_file}")
                     continue  # 跳过当前图片
 
                 faces.append(image)  # 添加图像到人脸图像列表
@@ -239,12 +293,14 @@ class TrainWorker(QThread):
 
         return faces, labels  # 返回人脸图像和标签列表
 
+
 class TrainWindow(QDialog, Window.Ui_TrainWindow):
     def __init__(self, picName, picId, parent=None):
         super(TrainWindow, self).__init__(parent)  # 调用父类的构造函数
 
         # 设置无标题栏窗口
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)  # 设置窗口无标题栏和对话框属性
+        self.setWindowFlags(Qt.FramelessWindowHint |
+                            Qt.Dialog)  # 设置窗口无标题栏和对话框属性
         self.setWindowModality(Qt.ApplicationModal)  # 设置窗口为应用程序模态
         self.setWindowFlag(Qt.WindowStaysOnTopHint)  # 设置窗口始终位于其他窗口顶层
 
@@ -265,8 +321,10 @@ class TrainWindow(QDialog, Window.Ui_TrainWindow):
             model_file_path = os.path.join(folder, model_file_name)  # 生成模型文件路径
             model_file_path = str(model_file_path)  # 确保路径是字符串
 
-            self.train_worker = TrainWorker(folder, model_file_path)  # 创建TrainWorker线程
-            self.train_worker.training_finished.connect(self.finishTraining)  # 连接训练完成信号到finishTraining方法
+            self.train_worker = TrainWorker(
+                folder, model_file_path)  # 创建TrainWorker线程
+            self.train_worker.training_finished.connect(
+                self.finishTraining)  # 连接训练完成信号到finishTraining方法
             self.train_worker.start()  # 启动TrainWorker线程
 
     def finishTraining(self, success):
@@ -277,15 +335,16 @@ class TrainWindow(QDialog, Window.Ui_TrainWindow):
             print("Training failed")  # 打印训练失败信息
             self.reject()  # 拒绝并关闭当前窗口
 
+
 class MngWindow(QDialog, Window.Ui_MngWindow):
     def __init__(self, parent=None):
         super(MngWindow, self).__init__(parent)
         self.showFullScreen()  # 设置窗口全屏显示
 
         # 获取当前的窗口标志
-        #current_flags = self.windowFlags()
+        # current_flags = self.windowFlags()
         # 设置禁用最大化、最小化和关闭按钮
-        #self.setWindowFlags(
+        # self.setWindowFlags(
         #    current_flags & ~QtCore.Qt.WindowMinimizeButtonHint & ~QtCore.Qt.WindowMaximizeButtonHint & ~QtCore.Qt.WindowCloseButtonHint)
 
         # 设置无标题栏窗口
@@ -296,6 +355,7 @@ class MngWindow(QDialog, Window.Ui_MngWindow):
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
         self.backButton.clicked.connect(self.close)
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -311,7 +371,8 @@ class MainWindow(QMainWindow):
         self.timer.start(20)  # 每20毫秒更新一次
 
         # 设置 cameraWidget 风格
-        self.ui.camLabel.setStyleSheet("border: 2px solid black; background-color: black;")
+        self.ui.camLabel.setStyleSheet(
+            "border: 2px solid black; background-color: black;")
 
         # 连接 entButton 的点击信号到槽函数
         self.ui.entButton.clicked.connect(self.openEntWindow)
@@ -333,14 +394,18 @@ class MainWindow(QMainWindow):
                 padding = 20  # 调整这个值以改变边框的大小
                 x1 = max(x - padding, 0)  # 计算矩形框的左上角x坐标，确保不超出边界
                 y1 = max(y - padding, 0)  # 计算矩形框的左上角y坐标，确保不超出边界
-                x2 = min(x + w + padding, frame.shape[1])  # 计算矩形框的右下角x坐标，确保不超出边界
-                y2 = min(y + h + padding, frame.shape[0])  # 计算矩形框的右下角y坐标，确保不超出边界
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)  # 在帧上绘制红色矩形框
+                # 计算矩形框的右下角x坐标，确保不超出边界
+                x2 = min(x + w + padding, frame.shape[1])
+                # 计算矩形框的右下角y坐标，确保不超出边界
+                y2 = min(y + h + padding, frame.shape[0])
+                cv2.rectangle(frame, (x1, y1), (x2, y2),
+                              (0, 0, 255), 2)  # 在帧上绘制红色矩形框
 
             # 将 OpenCV 图像转换为 QImage
             height, width, channel = frame.shape  # 获取帧的高度、宽度和通道数
             bytesPerLine = 3 * width  # 计算每行的字节数
-            qImg = QImage(frame.data, width, height, bytesPerLine, QImage.Format_RGB888)  # 创建QImage对象
+            qImg = QImage(frame.data, width, height, bytesPerLine,
+                          QImage.Format_RGB888)  # 创建QImage对象
 
             if qImg.isNull():
                 print("Warning: QImage is null")  # 如果QImage为空，打印警告信息
@@ -372,9 +437,12 @@ class MainWindow(QMainWindow):
                     padding = 20  # 调整这个值以改变边框的大小
                     x1 = max(x - padding, 0)  # 计算矩形框的左上角x坐标，确保不超出边界
                     y1 = max(y - padding, 0)  # 计算矩形框的左上角y坐标，确保不超出边界
-                    x2 = min(x + w + padding, frame.shape[1])  # 计算矩形框的右下角x坐标，确保不超出边界
-                    y2 = min(y + h + padding, frame.shape[0])  # 计算矩形框的右下角y坐标，确保不超出边界
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)  # 在帧上绘制红色矩形框
+                    # 计算矩形框的右下角x坐标，确保不超出边界
+                    x2 = min(x + w + padding, frame.shape[1])
+                    # 计算矩形框的右下角y坐标，确保不超出边界
+                    y2 = min(y + h + padding, frame.shape[0])
+                    cv2.rectangle(frame, (x1, y1), (x2, y2),
+                                  (0, 0, 255), 2)  # 在帧上绘制红色矩形框
 
                 # 保存检测到的人脸
                 status = camera.getFaces(frame, faces, index)  # 获取人脸图像并保存
@@ -384,14 +452,16 @@ class MainWindow(QMainWindow):
                 # 更新摄像头画面
                 height, width, channel = frame.shape  # 获取帧的高度、宽度和通道数
                 bytesPerLine = 3 * width  # 计算每行的字节数
-                qImg = QImage(frame.data, width, height, bytesPerLine, QImage.Format_RGB888)  # 创建QImage对象
+                qImg = QImage(frame.data, width, height,
+                              bytesPerLine, QImage.Format_RGB888)  # 创建QImage对象
                 pixmap = QPixmap.fromImage(qImg)  # 将QImage转换为QPixmap
                 scaled_pixmap = pixmap.scaled(self.ui.camLabel.size(), Qt.KeepAspectRatio,
                                               Qt.SmoothTransformation)  # 缩放QPixmap
                 self.ui.camLabel.setPixmap(scaled_pixmap)  # 在标签上显示QPixmap
 
                 # 更新进度条
-                self.ui.loadingBar.setValue(int((index / Img_Num) * 100))  # 更新进度条值
+                self.ui.loadingBar.setValue(
+                    int((index / Img_Num) * 100))  # 更新进度条值
                 QApplication.processEvents()  # 保持UI更新
 
             # 拍照完成
@@ -417,8 +487,8 @@ class MainWindow(QMainWindow):
         self.timer.stop()  # 停止 updateFrame
 
         self.captureImg()  # 调用拍照方法
-        #self.ent_window = EntWindow(self)
-        #self.ent_window.exec_()
+        # self.ent_window = EntWindow(self)
+        # self.ent_window.exec_()
 
     def openMngWindow(self):
         self.rec_window = MngWindow(self)
@@ -435,4 +505,3 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
-
