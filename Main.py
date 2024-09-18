@@ -25,6 +25,8 @@ camera = None
 data_manager = None
 
 
+
+
 class DataManager:
 
     def __init__(self):
