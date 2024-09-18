@@ -5,8 +5,8 @@ import sys
 import time
 import cv2
 import numpy as np
-from PyQt5.QtCore import QTimer, Qt, pyqtSignal, QThread
-from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtCore import QTimer, Qt, pyqtSignal, QThread, QRegExp
+from PyQt5.QtGui import QPixmap, QImage, QRegExpValidator
 import Window
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox
@@ -183,6 +183,9 @@ class EntWindow(QDialog, Window.Ui_EntWindow):
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 
         self.setupUi(self)
+        regex = QRegExp("[0-9]{11}")  # 正则表达式：只允许输入11位数字
+        reg_ex_validator = QRegExpValidator(regex, self.idEdit)
+        self.idEdit.setValidator(reg_ex_validator)
         self.setWindowFlag(QtCore.Qt.Dialog)
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
@@ -190,6 +193,7 @@ class EntWindow(QDialog, Window.Ui_EntWindow):
         self.okButton.clicked.connect(self.inputName)
 
     def inputName(self):
+
         self.picName = self.nameEdit.text()  # 从文本编辑框获取用户输入的姓名
         self.picId = self.idEdit.text()  # 从文本编辑框获取用户输入的ID
         success = data_manager.WriteTmpPicDir(
