@@ -73,11 +73,11 @@ class DataManager:
             shutil.rmtree(tmpImgPath)  # 删除现有的临时图片文件夹以及其内容
             os.mkdir(tmpImgPath)  # 重新创建一个新的临时图片文件夹
 
-    def WriteTmpPicDir(self, picName, picId) -> bool:
+    def WriteTmpPicDir(self, picName, picId) -> int:
         if picName == "":
-            return False
+            return 1  # 名字为空的状态码
         if picId == "":
-            return False
+            return 2  # 学号为空的状态码
         tmpImgPath = os.path.join(Data_Path, "_tmp_img_")  # 定义临时图片文件夹的路径
         # 打开并读取 .data 文件
         with open('data/.data', 'r', encoding='utf-8') as file:
@@ -98,7 +98,7 @@ class DataManager:
         for stunu in numbers_list:
             if picId == stunu:
                 # raise Exception("The picId already exists.")
-                return False
+                return 3  # 学号为重复的状态码
         new_folder_name = f"{picId}"  # 生成新的文件夹名称，以 picId 命名
         new_folder_path = os.path.join(Data_Path, new_folder_name)  # 定义新文件夹的路径
 
@@ -115,7 +115,7 @@ class DataManager:
             data_file.write(f"{picName}\n")  # 写入 picName
 
         self.updateData()  # 调用 updateData 方法更新数据
-        return True
+        return 0  # 返回0表示成功
 
 
 class Camera:
@@ -123,8 +123,8 @@ class Camera:
         # 初始化摄像头
         self.cap = cv2.VideoCapture(Cap_index)  # 打开摄像头设备，默认索引为 0
         if not self.cap.isOpened():  # 检查摄像头是否成功打开
-            raise Exception("Could not open video device")  # 如果摄像头未成功打开，抛出异常
-
+            # raise Exception("Could not open video device")  # 如果摄像头未成功打开，抛出异常
+            QMessageBox.warning(self, "警告", "摄像头未成功打开")  # 显示警告消息框
         # 使用 Haar 级联分类器进行人脸检测
         self.face_cascade = cv2.CascadeClassifier(
             cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')  # 加载预训练的 Haar 级联分类器，用于检测人脸
@@ -137,8 +137,8 @@ class Camera:
             # 将图像的颜色空间从 BGR 转换为 RGB
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             return frame  # 返回转换后的图像
-        else:  # 如果未能成功读取图像
-            raise Exception("Could not read frame from camera")  # 抛出异常
+        # else:  # 如果未能成功读取图像
+            # raise Exception("Could not read frame from camera")  # 抛出异常
 
     def grayImg(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)  # 将图像从 RGB 转换为灰度图像
@@ -186,6 +186,8 @@ class EntWindow(QDialog, Window.Ui_EntWindow):
         regex = QRegExp("[0-9]{11}")  # 正则表达式：只允许输入11位数字
         reg_ex_validator = QRegExpValidator(regex, self.idEdit)
         self.idEdit.setValidator(reg_ex_validator)
+        self.nameEdit.setPlaceholderText("输入姓名")
+        self.idEdit.setPlaceholderText("学号11位数字且不能重复录入")
         self.setWindowFlag(QtCore.Qt.Dialog)
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
@@ -196,15 +198,30 @@ class EntWindow(QDialog, Window.Ui_EntWindow):
 
         self.picName = self.nameEdit.text()  # 从文本编辑框获取用户输入的姓名
         self.picId = self.idEdit.text()  # 从文本编辑框获取用户输入的ID
-        success = data_manager.WriteTmpPicDir(
+        result = data_manager.WriteTmpPicDir(
             self.picName, self.picId)  # 将姓名和ID写入临时图片目录
-        if success:
+        if result == 0:
             self.close()  # 关闭当前窗口
-
-        else:
+        elif result == 1:
             self.delete()
-            QMessageBox.warning(self, "警告", "输入信息有误，请重新输入")  # 显示警告消息框
+            QMessageBox.warning(self, "警告", "名字或学号不能为空")  # 显示警告消息框
             return
+        elif result == 2:
+            self.delete()
+            QMessageBox.warning(self, "警告", "名字或学号不能为空")  # 显示警告消息框
+            return
+        elif result == 3:
+            self.delete()
+            QMessageBox.warning(self, "警告", "学号不能重复")  # 显示警告消息框
+            return
+
+        # if success:
+        #     self.close()  # 关闭当前窗口
+
+        # else:
+        #     self.delete()
+        #     QMessageBox.warning(self, "警告", "输入信息有误，请重新输入")  # 显示警告消息框
+        #     return
         # self.accept()  # 接受输入并关闭当前窗口
 
         # 在关闭 EntWindow 后弹出 TrainWindow
@@ -419,7 +436,8 @@ class MainWindow(QMainWindow):
                                               Qt.SmoothTransformation)  # 缩放QPixmap
                 self.ui.camLabel.setPixmap(scaled_pixmap)  # 在标签上显示QPixmap
         except Exception as e:
-            print(f"Error: {e}")  # 打印错误信息
+            # print(f"Error: {e}")  # 打印错误信息
+            # QMessageBox.warning(self, "警告", "读取摄像头失败")  # 显示警告消息框
             self.timer.stop()  # 停止定时器
 
     def captureImg(self):
