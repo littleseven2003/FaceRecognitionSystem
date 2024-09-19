@@ -6,10 +6,10 @@ import time
 import cv2
 import numpy as np
 from PyQt5.QtCore import QTimer, Qt, pyqtSignal, QThread, QRegExp
-from PyQt5.QtGui import QPixmap, QImage, QRegExpValidator,QFont
+from PyQt5.QtGui import QPixmap, QImage, QRegExpValidator
 import Window
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox,QLabel,QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox
 
 
 face_cascade = cv2.CascadeClassifier(
@@ -23,7 +23,6 @@ Data_Num = 0  # 人脸数据总数，用于统计并管理已录入的人脸数�
 
 camera = None
 data_manager = None
-
 
 
 
@@ -170,30 +169,6 @@ class Camera:
         # 释放摄像头资源
         self.cap.release()
 
-# class EmptyWindow(QDialog):
-#     def __init__(self, parent=None):
-#         super(EmptyWindow, self).__init__(parent)  # 调用父类的构造函数
-#         # 设置窗口无边框
-#         self.setWindowFlags(Qt.FramelessWindowHint)
-#         # 锁只能交互该窗口
-#         self.setWindowModality(QtCore.Qt.ApplicationModal)
-#         # 始终顶端
-#         self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
-#         self.setWindowOpacity(0.0)
-#         # layout = QVBoxLayout(self)
-#         # self.helloLabel = QLabel("拍照中", self)
-#         # self.layout().setContentsMargins(50,50,50,50)
-#         # # 设置字体大小
-#         # font = QFont()
-#         # font.setPointSize(70)
-#         # self.helloLabel.setFont(font)
-#         # # 设置标签的对齐方式，以确保文本在标签中居中
-#         # self.helloLabel.setAlignment(Qt.AlignCenter)
-#         # layout.addWidget(self.helloLabel)
-#     def closeEvent(self, event):
-#     # 阻止窗口关闭
-#         event.ignore()
-
 class EntWindow(QDialog, Window.Ui_EntWindow):
     def __init__(self, parent=None):
         super(EntWindow, self).__init__(parent)
@@ -239,15 +214,6 @@ class EntWindow(QDialog, Window.Ui_EntWindow):
             self.delete()
             QMessageBox.warning(self, "警告", "学号不能重复")  # 显示警告消息框
             return
-
-        # if success:
-        #     self.close()  # 关闭当前窗口
-
-        # else:
-        #     self.delete()
-        #     QMessageBox.warning(self, "警告", "输入信息有误，请重新输入")  # 显示警告消息框
-        #     return
-        # self.accept()  # 接受输入并关闭当前窗口
 
         # 在关闭 EntWindow 后弹出 TrainWindow
         train_window = TrainWindow(
