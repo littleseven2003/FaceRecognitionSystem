@@ -6,10 +6,10 @@ import time
 import cv2
 import numpy as np
 from PyQt5.QtCore import QTimer, Qt, pyqtSignal, QThread, QRegExp
-from PyQt5.QtGui import QPixmap, QImage, QRegExpValidator
+from PyQt5.QtGui import QPixmap, QImage, QRegExpValidator,QFont
 import Window
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox,QLabel,QVBoxLayout
 
 
 face_cascade = cv2.CascadeClassifier(
@@ -18,7 +18,7 @@ face_cascade = cv2.CascadeClassifier(
 Cap_index = 0  # 0 表示默认摄像头（通常是内置摄像头或第一个外接摄像头）
 Path = os.getcwd()  # 获取当前工作目录路径
 Data_Path = Path + "/data"  # 定义数据存储路径，将在当前工作目录下创建一个名为 "data" 的文件夹
-Img_Num = 2  # 录入时拍摄照片数量，用于在录入新的人脸数据时拍摄指定数量的照片
+Img_Num = 50  # 录入时拍摄照片数量，用于在录入新的人脸数据时拍摄指定数量的照片
 Data_Num = 0  # 人脸数据总数，用于统计并管理已录入的人脸数据数量
 
 camera = None
@@ -170,6 +170,29 @@ class Camera:
         # 释放摄像头资源
         self.cap.release()
 
+class EmptyWindow(QDialog):
+    def __init__(self, parent=None):
+        super(EmptyWindow, self).__init__(parent)  # 调用父类的构造函数
+        # 设置窗口无边框
+        self.setWindowFlags(Qt.FramelessWindowHint)
+        # 锁只能交互该窗口
+        self.setWindowModality(QtCore.Qt.ApplicationModal)
+        # 始终顶端
+        self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowOpacity(0.0)
+        # layout = QVBoxLayout(self)
+        # self.helloLabel = QLabel("拍照中", self)
+        # self.layout().setContentsMargins(50,50,50,50)
+        # # 设置字体大小
+        # font = QFont()
+        # font.setPointSize(70)
+        # self.helloLabel.setFont(font)
+        # # 设置标签的对齐方式，以确保文本在标签中居中
+        # self.helloLabel.setAlignment(Qt.AlignCenter)
+        # layout.addWidget(self.helloLabel)
+    def closeEvent(self, event):
+    # 阻止窗口关闭
+        event.ignore()
 
 class EntWindow(QDialog, Window.Ui_EntWindow):
     def __init__(self, parent=None):
@@ -444,9 +467,10 @@ class MainWindow(QMainWindow):
 
     def captureImg(self):
         # 设置状态为拍照中
+        empty_Window=EmptyWindow()
+        empty_Window.show()
         self.ui.loadingLabel.setText("状态：拍照中")  # 更新状态标签文本
         self.ui.loadingBar.setValue(0)  # 将进度条重置为0
-
         data_manager.CreateTmpImgDir()  # 创建临时图片目录
 
         try:
@@ -491,6 +515,7 @@ class MainWindow(QMainWindow):
             # 拍照完成
             self.ui.loadingLabel.setText("状态：等待操作")  # 更新状态标签文本
             self.ui.loadingBar.setValue(0)  # 将进度条重置为0
+            empty_Window.close()
             self.ent_window = EntWindow(self)  # 创建EntWindow窗口实例
             self.ent_window.exec_()  # 以模态形式显示EntWindow窗口
         except Exception as e:
