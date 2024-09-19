@@ -26,7 +26,6 @@ data_manager = None
 
 
 
-
 class DataManager:
 
     def __init__(self):
@@ -170,7 +169,6 @@ class Camera:
         # 释放摄像头资源
         self.cap.release()
 
-
 class EntWindow(QDialog, Window.Ui_EntWindow):
     def __init__(self, parent=None):
         super(EntWindow, self).__init__(parent)
@@ -217,18 +215,9 @@ class EntWindow(QDialog, Window.Ui_EntWindow):
             QMessageBox.warning(self, "警告", "学号不能重复")  # 显示警告消息框
             return
 
-        # if success:
-        #     self.close()  # 关闭当前窗口
-
-        # else:
-        #     self.delete()
-        #     QMessageBox.warning(self, "警告", "输入信息有误，请重新输入")  # 显示警告消息框
-        #     return
-        # self.accept()  # 接受输入并关闭当前窗口
-
         # 在关闭 EntWindow 后弹出 TrainWindow
         train_window = TrainWindow(
-            self.picName, self.picId)  # 创建TrainWindow窗口实例
+            self.picName, self.picId, self)  # 创建TrainWindow窗口实例
         train_window.exec_()  # 以模态形式显示TrainWindow窗口
 
     def delete(self):
@@ -322,8 +311,7 @@ class TrainWindow(QDialog, Window.Ui_TrainWindow):
         super(TrainWindow, self).__init__(parent)  # 调用父类的构造函数
 
         # 设置无标题栏窗口
-        self.setWindowFlags(Qt.FramelessWindowHint |
-                            Qt.Dialog)  # 设置窗口无标题栏和对话框属性
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)  # 设置窗口无标题栏和对话框属性
         self.setWindowModality(Qt.ApplicationModal)  # 设置窗口为应用程序模态
         self.setWindowFlag(Qt.WindowStaysOnTopHint)  # 设置窗口始终位于其他窗口顶层
 
@@ -443,6 +431,15 @@ class MainWindow(QMainWindow):
             self.timer.stop()  # 停止定时器
 
     def captureImg(self):
+        # 禁用所有按钮
+        self.ui.entButton.setEnabled(False)
+        self.ui.recButton.setEnabled(False)
+        self.ui.mngButton.setEnabled(False)
+        self.ui.exitButton.setEnabled(False)
+
+
+        #time.sleep(5)
+
         # 设置状态为拍照中
         self.ui.loadingLabel.setText("状态：拍照中")  # 更新状态标签文本
         self.ui.loadingBar.setValue(0)  # 将进度条重置为0
@@ -461,12 +458,9 @@ class MainWindow(QMainWindow):
                     padding = 20  # 调整这个值以改变边框的大小
                     x1 = max(x - padding, 0)  # 计算矩形框的左上角x坐标，确保不超出边界
                     y1 = max(y - padding, 0)  # 计算矩形框的左上角y坐标，确保不超出边界
-                    # 计算矩形框的右下角x坐标，确保不超出边界
                     x2 = min(x + w + padding, frame.shape[1])
-                    # 计算矩形框的右下角y坐标，确保不超出边界
                     y2 = min(y + h + padding, frame.shape[0])
-                    cv2.rectangle(frame, (x1, y1), (x2, y2),
-                                  (0, 0, 255), 2)  # 在帧上绘制红色矩形框
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
                 # 保存检测到的人脸
                 status = camera.getFaces(frame, faces, index)  # 获取人脸图像并保存
@@ -474,18 +468,15 @@ class MainWindow(QMainWindow):
                     index += 1  # 如果成功保存人脸图像，增加索引
 
                 # 更新摄像头画面
-                height, width, channel = frame.shape  # 获取帧的高度、宽度和通道数
-                bytesPerLine = 3 * width  # 计算每行的字节数
-                qImg = QImage(frame.data, width, height,
-                              bytesPerLine, QImage.Format_RGB888)  # 创建QImage对象
-                pixmap = QPixmap.fromImage(qImg)  # 将QImage转换为QPixmap
-                scaled_pixmap = pixmap.scaled(self.ui.camLabel.size(), Qt.KeepAspectRatio,
-                                              Qt.SmoothTransformation)  # 缩放QPixmap
-                self.ui.camLabel.setPixmap(scaled_pixmap)  # 在标签上显示QPixmap
+                height, width, channel = frame.shape
+                bytesPerLine = 3 * width
+                qImg = QImage(frame.data, width, height, bytesPerLine, QImage.Format_RGB888)
+                pixmap = QPixmap.fromImage(qImg)
+                scaled_pixmap = pixmap.scaled(self.ui.camLabel.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                self.ui.camLabel.setPixmap(scaled_pixmap)
 
                 # 更新进度条
-                self.ui.loadingBar.setValue(
-                    int((index / Img_Num) * 100))  # 更新进度条值
+                self.ui.loadingBar.setValue(int((index / Img_Num) * 100))
                 QApplication.processEvents()  # 保持UI更新
 
             # 拍照完成
@@ -493,9 +484,16 @@ class MainWindow(QMainWindow):
             self.ui.loadingBar.setValue(0)  # 将进度条重置为0
             self.ent_window = EntWindow(self)  # 创建EntWindow窗口实例
             self.ent_window.exec_()  # 以模态形式显示EntWindow窗口
+
         except Exception as e:
             print(f"Error: {e}")  # 打印错误信息
         finally:
+            # 启用所有按钮
+            self.ui.entButton.setEnabled(True)
+            self.ui.recButton.setEnabled(True)
+            self.ui.mngButton.setEnabled(True)
+            self.ui.exitButton.setEnabled(True)
+
             # 恢复 updateFrame 调用
             self.timer.start(20)  # 启动定时器，每20毫秒调用一次updateFrame
 
