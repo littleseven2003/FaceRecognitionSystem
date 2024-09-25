@@ -20,6 +20,7 @@ Path = os.getcwd()  # 获取当前工作目录路径
 Data_Path = Path + "/data"  # 定义数据存储路径，将在当前工作目录下创建一个名为 "data" 的文件夹
 Img_Num = 200  # 录入时拍摄照片数量，用于在录入新的人脸数据时拍摄指定数量的照片
 Data_Num = 0  # 人脸数据总数，用于统计并管理已录入的人脸数据数量
+TotalNum = 20 # 识别结果相同多少次认为识别成功
 
 camera = None
 data_manager = None
@@ -575,14 +576,14 @@ class MainWindow(QMainWindow):
         self.ui.mngButton.setEnabled(False)
         self.ui.exitButton.setEnabled(False)
 
-        # time.sleep(5)
-
-        # 设置状态为拍照中
+        # 设置状态为识别中
         self.ui.loadingLabel.setText("状态：识别中")  # 更新状态标签文本
         self.ui.loadingBar.setValue(0)  # 将进度条重置为0
 
         self.model_recognizers = self.loadModels()
         recognized_count = {}
+        start_time = time.time()  # 记录开始时间
+
         try:
             while True:
                 frame = camera.readFrame()  # 读取相机帧
@@ -594,7 +595,7 @@ class MainWindow(QMainWindow):
 
                     for student_id, recognizer in self.model_recognizers.items():
                         label, confidence = recognizer.predict(face)  # 进行人脸识别
-                        if confidence < 50:  # 设定一个合理的阈值
+                        if confidence < 40:  # 设定一个合理的阈值
                             if student_id not in recognized_count:
                                 recognized_count[student_id] = 0
                             recognized_count[student_id] += 1
@@ -617,11 +618,25 @@ class MainWindow(QMainWindow):
 
                 # 更新进度条
                 for student_id, count in recognized_count.items():
-                    progress = min(count * 5, 100)  # 每次识别成功增加5%，最多100%
+                    progress = min(int((count / TotalNum) * 100), 100)  # 根据比例计算进度条
                     self.ui.loadingBar.setValue(progress)
-                    if count >= 20:  # 如果超过20次识别结果相同
+                    if count >= TotalNum:  # 如果超过总次数
                         student_name = self.getStudentName(student_id)
                         return student_id
+                # # 更新进度条
+                # for student_id, count in recognized_count.items():
+                #     progress = min(count * 5, 100)  # 每次识别成功增加5%，最多100%
+                #     self.ui.loadingBar.setValue(progress)
+                #     if count >= 20:  # 如果超过20次识别结果相同
+                #         student_name = self.getStudentName(student_id)
+                #         return student_id
+
+                current_time = time.time()
+                elapsed_time = current_time - start_time
+                rounded_elapsed_time = str(round(elapsed_time))  # 四舍五入并转化为字符串
+                self.ui.loadingLabel.setText(f"状态：识别中（{rounded_elapsed_time}s)")  # 更新状态标签文本
+                if elapsed_time > 10:  # 如果超过10秒
+                    return "无识别结果"
 
                 QApplication.processEvents()  # 保持UI更新
 
@@ -639,6 +654,8 @@ class MainWindow(QMainWindow):
             self.ui.loadingBar.setValue(0)  # 将进度条重置为0
 
     def getStudentName(self, student_id):
+        if student_id == "无识别结果" :
+            return "无识别结果"
         student_data_file = os.path.join(Data_Path, student_id, f"{student_id}.data")
         if os.path.exists(student_data_file):
             with open(student_data_file, 'r', encoding='utf-8') as f:
