@@ -595,7 +595,7 @@ class MainWindow(QMainWindow):
 
                     for student_id, recognizer in self.model_recognizers.items():
                         label, confidence = recognizer.predict(face)  # 进行人脸识别
-                        if confidence < 40:  # 设定一个合理的阈值
+                        if confidence < 50:  # 设定一个合理的阈值
                             if student_id not in recognized_count:
                                 recognized_count[student_id] = 0
                             recognized_count[student_id] += 1
@@ -635,7 +635,7 @@ class MainWindow(QMainWindow):
                 elapsed_time = current_time - start_time
                 rounded_elapsed_time = str(round(elapsed_time))  # 四舍五入并转化为字符串
                 self.ui.loadingLabel.setText(f"状态：识别中（{rounded_elapsed_time}s)")  # 更新状态标签文本
-                if elapsed_time > 10:  # 如果超过10秒
+                if elapsed_time > 20:  # 如果超过10秒
                     return "无识别结果"
 
                 QApplication.processEvents()  # 保持UI更新
