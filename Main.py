@@ -226,7 +226,7 @@ class EntWindow(QDialog, Window.Ui_EntWindow):
 
 
 class RecWindow(QDialog, Window.Ui_RecWindow):
-    def __init__(self, parent=None):
+    def __init__(self, studentId, studentName, parent=None):
         super(RecWindow, self).__init__(parent)
 
         # 获取当前的窗口标志
@@ -235,10 +235,14 @@ class RecWindow(QDialog, Window.Ui_RecWindow):
         # self.setWindowFlags(
         #    current_flags & ~QtCore.Qt.WindowMinimizeButtonHint & ~QtCore.Qt.WindowMaximizeButtonHint & ~QtCore.Qt.WindowCloseButtonHint)
 
+        print(studentId, studentName)
         # 设置无标题栏窗口
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
 
+
         self.setupUi(self)
+        self.idEdit.setText(studentId)
+        self.nameEdit.setText(studentName)
 
         self.setWindowFlag(QtCore.Qt.Dialog)
         self.setWindowModality(QtCore.Qt.ApplicationModal)
@@ -518,17 +522,69 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).closeEvent(event)
 
     def openRecWindow(self):
-        # self.rec_window = RecWindow(self)
-        # self.rec_window.exec_()
-
         self.timer.stop()  # 停止更新帧
-        self.recognizeFace()  # 开始人脸识别
+        self.student_id = self.recognizeFace()  # 开始人脸识别
+        self.student_name = self.getStudentName(self.student_id)
+        self.rec_window = RecWindow(self.student_id, self.student_name, self)
+        self.rec_window.exec_()
+
+
+
+    # def recognizeFace(self):
+    #     self.model_recognizers = self.loadModels()
+    #     try:
+    #         while True:
+    #
+    #             frame = camera.readFrame()  # 读取相机帧
+    #             gray = camera.grayImg(frame)  # 将帧转换为灰度图像
+    #             faces = camera.detectFaces(gray, frame)  # 检测人脸
+    #
+    #             for (x, y, w, h) in faces:
+    #                 face = gray[y:y + h, x:x + w]  # 提取人脸区域
+    #
+    #                 for student_id, recognizer in self.model_recognizers.items():
+    #                     label, confidence = recognizer.predict(face)  # 进行人脸识别
+    #                     if confidence < 50:  # 设定一个合理的阈值
+    #                         # 在图像中标注人脸和识别结果
+    #                         student_name = self.getStudentName(student_id)
+    #                         cv2.putText(frame, f"{student_name} ({student_id})", (x, y - 10),
+    #                                     cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+    #                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    #                     else:
+    #                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+    #
+    #             # 将 OpenCV 图像转换为 QImage
+    #             height, width, channel = frame.shape
+    #             bytesPerLine = 3 * width
+    #             qImg = QImage(frame.data, width, height, bytesPerLine, QImage.Format_RGB888)
+    #             pixmap = QPixmap.fromImage(qImg)
+    #             scaled_pixmap = pixmap.scaled(self.ui.camLabel.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+    #             self.ui.camLabel.setPixmap(scaled_pixmap)
+    #
+    #             QApplication.processEvents()  # 保持UI更新
+    #
+    #     except Exception as e:
+    #         print(f"Error: {e}")
+    #     finally:
+    #         self.timer.start(20)  # 恢复更新帧
 
     def recognizeFace(self):
+        # 禁用所有按钮
+        self.ui.entButton.setEnabled(False)
+        self.ui.recButton.setEnabled(False)
+        self.ui.mngButton.setEnabled(False)
+        self.ui.exitButton.setEnabled(False)
+
+        # time.sleep(5)
+
+        # 设置状态为拍照中
+        self.ui.loadingLabel.setText("状态：识别中")  # 更新状态标签文本
+        self.ui.loadingBar.setValue(0)  # 将进度条重置为0
+
         self.model_recognizers = self.loadModels()
+        recognized_count = {}
         try:
             while True:
-
                 frame = camera.readFrame()  # 读取相机帧
                 gray = camera.grayImg(frame)  # 将帧转换为灰度图像
                 faces = camera.detectFaces(gray, frame)  # 检测人脸
@@ -539,15 +595,19 @@ class MainWindow(QMainWindow):
                     for student_id, recognizer in self.model_recognizers.items():
                         label, confidence = recognizer.predict(face)  # 进行人脸识别
                         if confidence < 50:  # 设定一个合理的阈值
+                            if student_id not in recognized_count:
+                                recognized_count[student_id] = 0
+                            recognized_count[student_id] += 1
+
                             # 在图像中标注人脸和识别结果
                             student_name = self.getStudentName(student_id)
-                            cv2.putText(frame, f"{student_name} ({student_id})", (x, y - 10),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+                            # cv2.putText(frame, f"{student_name} ({student_id})", (x, y - 10),
+                            #             cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
                             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                         else:
                             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
-                # 将 OpenCV 图像转换为 QImage
+                # 更新 OpenCV 图像到 QImage
                 height, width, channel = frame.shape
                 bytesPerLine = 3 * width
                 qImg = QImage(frame.data, width, height, bytesPerLine, QImage.Format_RGB888)
@@ -555,12 +615,28 @@ class MainWindow(QMainWindow):
                 scaled_pixmap = pixmap.scaled(self.ui.camLabel.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 self.ui.camLabel.setPixmap(scaled_pixmap)
 
+                # 更新进度条
+                for student_id, count in recognized_count.items():
+                    progress = min(count * 5, 100)  # 每次识别成功增加5%，最多100%
+                    self.ui.loadingBar.setValue(progress)
+                    if count >= 20:  # 如果超过20次识别结果相同
+                        student_name = self.getStudentName(student_id)
+                        return student_id
+
                 QApplication.processEvents()  # 保持UI更新
 
         except Exception as e:
             print(f"Error: {e}")
         finally:
             self.timer.start(20)  # 恢复更新帧
+            # 启用所有按钮
+            self.ui.entButton.setEnabled(True)
+            self.ui.recButton.setEnabled(True)
+            self.ui.mngButton.setEnabled(True)
+            self.ui.exitButton.setEnabled(True)
+
+            self.ui.loadingLabel.setText("状态：等待操作")  # 设置状态为等待操作
+            self.ui.loadingBar.setValue(0)  # 将进度条重置为0
 
     def getStudentName(self, student_id):
         student_data_file = os.path.join(Data_Path, student_id, f"{student_id}.data")
