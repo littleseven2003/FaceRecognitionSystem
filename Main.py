@@ -18,7 +18,7 @@ face_cascade = cv2.CascadeClassifier(
 Cap_index = 0  # 0 表示默认摄像头（通常是内置摄像头或第一个外接摄像头）
 Path = os.getcwd()  # 获取当前工作目录路径
 Data_Path = Path + "/data"  # 定义数据存储路径，将在当前工作目录下创建一个名为 "data" 的文件夹
-Img_Num = 2  # 录入时拍摄照片数量，用于在录入新的人脸数据时拍摄指定数量的照片
+Img_Num = 200  # 录入时拍摄照片数量，用于在录入新的人脸数据时拍摄指定数量的照片
 Data_Num = 0  # 人脸数据总数，用于统计并管理已录入的人脸数据数量
 
 camera = None
@@ -394,6 +394,8 @@ class MainWindow(QMainWindow):
         # 连接 exitButton 的点击信号到槽函数
         self.ui.exitButton.clicked.connect(self.close)
 
+        self.model_recognizers = self.loadModels()  # 加载所有模型
+
     def updateFrame(self):
         try:
             frame = camera.readFrame()  # 读取相机帧
@@ -497,13 +499,77 @@ class MainWindow(QMainWindow):
             # 恢复 updateFrame 调用
             self.timer.start(20)  # 启动定时器，每20毫秒调用一次updateFrame
 
+    def loadModels(self):
+        model_recognizers = {}
+        for folder in os.listdir(Data_Path):
+            folder_path = os.path.join(Data_Path, folder)
+            if os.path.isdir(folder_path):
+                model_file = os.path.join(folder_path, f"{folder}.yml")
+                if os.path.exists(model_file):
+                    recognizer = cv2.face.LBPHFaceRecognizer_create()
+                    recognizer.read(model_file)
+                    model_recognizers[folder] = recognizer
+        return model_recognizers
+
+
+
     def closeEvent(self, event):
         camera.release()
         super(MainWindow, self).closeEvent(event)
 
     def openRecWindow(self):
-        self.rec_window = RecWindow(self)
-        self.rec_window.exec_()
+        # self.rec_window = RecWindow(self)
+        # self.rec_window.exec_()
+
+        self.timer.stop()  # 停止更新帧
+        self.recognizeFace()  # 开始人脸识别
+
+    def recognizeFace(self):
+        self.model_recognizers = self.loadModels()
+        try:
+            while True:
+
+                frame = camera.readFrame()  # 读取相机帧
+                gray = camera.grayImg(frame)  # 将帧转换为灰度图像
+                faces = camera.detectFaces(gray, frame)  # 检测人脸
+
+                for (x, y, w, h) in faces:
+                    face = gray[y:y + h, x:x + w]  # 提取人脸区域
+
+                    for student_id, recognizer in self.model_recognizers.items():
+                        label, confidence = recognizer.predict(face)  # 进行人脸识别
+                        if confidence < 50:  # 设定一个合理的阈值
+                            # 在图像中标注人脸和识别结果
+                            student_name = self.getStudentName(student_id)
+                            cv2.putText(frame, f"{student_name} ({student_id})", (x, y - 10),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+                            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                        else:
+                            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+
+                # 将 OpenCV 图像转换为 QImage
+                height, width, channel = frame.shape
+                bytesPerLine = 3 * width
+                qImg = QImage(frame.data, width, height, bytesPerLine, QImage.Format_RGB888)
+                pixmap = QPixmap.fromImage(qImg)
+                scaled_pixmap = pixmap.scaled(self.ui.camLabel.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                self.ui.camLabel.setPixmap(scaled_pixmap)
+
+                QApplication.processEvents()  # 保持UI更新
+
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            self.timer.start(20)  # 恢复更新帧
+
+    def getStudentName(self, student_id):
+        student_data_file = os.path.join(Data_Path, student_id, f"{student_id}.data")
+        if os.path.exists(student_data_file):
+            with open(student_data_file, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+                if len(lines) >= 2:
+                    return lines[1].strip()  # 返回学生姓名
+        return "Unknown"
 
     def openEntWindow(self):
         self.timer.stop()  # 停止 updateFrame
