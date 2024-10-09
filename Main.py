@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import shutil
+import subprocess
 import sys
 import time
 import cv2
@@ -9,8 +10,7 @@ from PyQt5.QtCore import QTimer, Qt, pyqtSignal, QThread, QRegExp
 from PyQt5.QtGui import QPixmap, QImage, QRegExpValidator
 import Window
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox
-
+from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox, QTableWidgetItem
 
 face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
@@ -371,6 +371,74 @@ class MngWindow(QDialog, Window.Ui_MngWindow):
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
         self.backButton.clicked.connect(self.close)
+        self.loadDataIntoTable()
+
+        # 连接双击信号到槽函数
+        self.tableWidget.cellDoubleClicked.connect(self.openFolder)
+
+        # 连接单击信号到槽函数
+        self.tableWidget.cellClicked.connect(self.displayInfo)
+
+        self.delButton.clicked.connect(self.deleteSelectedRow)
+
+    def openFolder(self, row, column):
+        # 获取当前行的文件夹路径（假设第三列为文件夹路径）
+        folder_path = self.tableWidget.item(row, 2).text()
+
+        try:
+            if sys.platform == 'win32':
+                os.startfile(folder_path)
+            elif sys.platform == 'darwin':
+                subprocess.Popen(['open', folder_path])
+            else:
+                subprocess.Popen(['xdg-open', folder_path])
+        except Exception as e:
+            QMessageBox.warning(self, "错误", f"无法打开文件夹: {e}")
+
+    def loadDataIntoTable(self):
+        data_file_path = os.path.join(Data_Path, '.data')
+
+        with open(data_file_path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()[1:]  # 跳过第一行，总行数
+
+        self.tableWidget.setRowCount(len(lines))
+
+        for row, line in enumerate(lines):
+            student_id, student_name = line.strip().split('_')
+            folder_path = os.path.join(Data_Path, student_id)
+
+            self.tableWidget.setItem(row, 0, QTableWidgetItem(student_name))
+            self.tableWidget.setItem(row, 1, QTableWidgetItem(student_id))
+            self.tableWidget.setItem(row, 2, QTableWidgetItem(folder_path))
+
+    def displayInfo(self, row, column):
+        # 显示选中行的姓名和学号
+        student_name = self.tableWidget.item(row, 0).text()
+        student_id = self.tableWidget.item(row, 1).text()
+
+        self.nameEdit.setText(student_name)
+        self.idEdit.setText(student_id)
+
+    def deleteSelectedRow(self):
+        current_row = self.tableWidget.currentRow()
+        if current_row < 0:
+            QMessageBox.warning(self, "错误", "请选择要删除的行")
+            return
+
+        folder_path = self.tableWidget.item(current_row, 2).text()
+
+        try:
+            if os.path.exists(folder_path):
+                shutil.rmtree(folder_path)
+                QMessageBox.information(self, "成功", "文件夹已删除")
+            else:
+                QMessageBox.warning(self, "错误", "文件夹不存在")
+        except Exception as e:
+            QMessageBox.warning(self, "错误", f"无法删除文件夹: {e}")
+            return
+
+        data_manager.updateData()
+        self.loadDataIntoTable()
 
 
 class MainWindow(QMainWindow):
