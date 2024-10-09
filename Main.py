@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import shutil
+import subprocess
 import sys
 import time
 import cv2
@@ -9,8 +10,7 @@ from PyQt5.QtCore import QTimer, Qt, pyqtSignal, QThread, QRegExp
 from PyQt5.QtGui import QPixmap, QImage, QRegExpValidator
 import Window
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox
-
+from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox, QTableWidgetItem
 
 face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
@@ -371,7 +371,40 @@ class MngWindow(QDialog, Window.Ui_MngWindow):
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
         self.backButton.clicked.connect(self.close)
+        self.loadDataIntoTable()
 
+        # 连接双击信号到槽函数
+        self.tableWidget.cellDoubleClicked.connect(self.openFolder)
+
+    def openFolder(self, row, column):
+        # 获取当前行的文件夹路径（假设第三列为文件夹路径）
+        folder_path = self.tableWidget.item(row, 2).text()
+
+        try:
+            if sys.platform == 'win32':
+                os.startfile(folder_path)
+            elif sys.platform == 'darwin':
+                subprocess.Popen(['open', folder_path])
+            else:
+                subprocess.Popen(['xdg-open', folder_path])
+        except Exception as e:
+            QMessageBox.warning(self, "错误", f"无法打开文件夹: {e}")
+
+    def loadDataIntoTable(self):
+        data_file_path = os.path.join(Data_Path, '.data')
+
+        with open(data_file_path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()[1:]  # 跳过第一行，总行数
+
+        self.tableWidget.setRowCount(len(lines))
+
+        for row, line in enumerate(lines):
+            student_id, student_name = line.strip().split('_')
+            folder_path = os.path.join(Data_Path, student_id)
+
+            self.tableWidget.setItem(row, 0, QTableWidgetItem(student_name))
+            self.tableWidget.setItem(row, 1, QTableWidgetItem(student_id))
+            self.tableWidget.setItem(row, 2, QTableWidgetItem(folder_path))
 
 class MainWindow(QMainWindow):
     def __init__(self):
