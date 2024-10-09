@@ -376,6 +376,9 @@ class MngWindow(QDialog, Window.Ui_MngWindow):
         # 连接双击信号到槽函数
         self.tableWidget.cellDoubleClicked.connect(self.openFolder)
 
+        # 连接单击信号到槽函数
+        self.tableWidget.cellClicked.connect(self.displayInfo)
+
     def openFolder(self, row, column):
         # 获取当前行的文件夹路径（假设第三列为文件夹路径）
         folder_path = self.tableWidget.item(row, 2).text()
@@ -405,6 +408,14 @@ class MngWindow(QDialog, Window.Ui_MngWindow):
             self.tableWidget.setItem(row, 0, QTableWidgetItem(student_name))
             self.tableWidget.setItem(row, 1, QTableWidgetItem(student_id))
             self.tableWidget.setItem(row, 2, QTableWidgetItem(folder_path))
+
+    def displayInfo(self, row, column):
+        # 显示选中行的姓名和学号
+        student_name = self.tableWidget.item(row, 0).text()
+        student_id = self.tableWidget.item(row, 1).text()
+
+        self.nameEdit.setText(student_name)
+        self.idEdit.setText(student_id)
 
 class MainWindow(QMainWindow):
     def __init__(self):
