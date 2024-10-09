@@ -379,6 +379,8 @@ class MngWindow(QDialog, Window.Ui_MngWindow):
         # 连接单击信号到槽函数
         self.tableWidget.cellClicked.connect(self.displayInfo)
 
+        self.delButton.clicked.connect(self.deleteSelectedRow)
+
     def openFolder(self, row, column):
         # 获取当前行的文件夹路径（假设第三列为文件夹路径）
         folder_path = self.tableWidget.item(row, 2).text()
@@ -416,6 +418,28 @@ class MngWindow(QDialog, Window.Ui_MngWindow):
 
         self.nameEdit.setText(student_name)
         self.idEdit.setText(student_id)
+
+    def deleteSelectedRow(self):
+        current_row = self.tableWidget.currentRow()
+        if current_row < 0:
+            QMessageBox.warning(self, "错误", "请选择要删除的行")
+            return
+
+        folder_path = self.tableWidget.item(current_row, 2).text()
+
+        try:
+            if os.path.exists(folder_path):
+                shutil.rmtree(folder_path)
+                QMessageBox.information(self, "成功", "文件夹已删除")
+            else:
+                QMessageBox.warning(self, "错误", "文件夹不存在")
+        except Exception as e:
+            QMessageBox.warning(self, "错误", f"无法删除文件夹: {e}")
+            return
+
+        data_manager.updateData()
+        self.loadDataIntoTable()
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
