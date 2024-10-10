@@ -1,11 +1,6 @@
-# 忽略所有包含 "Window.py" 的文件
-*Window.py
-*.ui
 tempCodeRunnerFile.py
 # 忽略 .idea 文件夹
 .idea/
 __pycache__/
 test/
 data/
-
-!Window.py
