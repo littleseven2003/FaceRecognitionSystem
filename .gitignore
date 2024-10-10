@@ -1,4 +1,5 @@
 tempCodeRunnerFile.py
+.DS_Store
 # 忽略 .idea 文件夹
 .idea/
 __pycache__/
