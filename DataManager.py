@@ -30,10 +30,11 @@ class DataManager:
             self.face_cascade = cv2.CascadeClassifier(eval(face_cascade_path))
 
             # 读取系统参数
-            self.Cam_id = config.getint('SystemParameters', 'Cam_id', fallback=0)
+            self.Cam_Id = config.getint('SystemParameters', 'Cam_id', fallback=0)
             self.Img_Num = config.getint('SystemParameters', 'Number_of_img', fallback=5)
             self.Rec_Num = config.getint('SystemParameters', 'Number_of_recognition', fallback=20)
             self.Rec_Confidence = config.getint('SystemParameters', 'Confidence_of_recognition', fallback=50)
+            self.Time_Limit = config.getint('SystemParameters', 'Time_limit', fallback=20)
 
         except Exception as e:
             print(f"读取配置文件出错: {e}")

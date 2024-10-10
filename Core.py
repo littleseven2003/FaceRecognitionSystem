@@ -38,7 +38,7 @@ class MessageBox:
 class Camera:
     def __init__(self):
         # 初始化摄像头
-        self.cam = cv2.VideoCapture(Cam_id)  # 打开摄像头设备，默认索引为 0
+        self.cam = cv2.VideoCapture(Cam_Id)  # 打开摄像头设备，默认索引为 0
         if not self.cam.isOpened():  # 检查摄像头是否成功打开
             print("摄像头初始化失败，程序中断！")
             sys.exit()
@@ -394,7 +394,7 @@ class MainWindow(QMainWindow):
                 elapsed_time = current_time - start_time
                 rounded_elapsed_time = str(round(elapsed_time))
                 self.ui.loadingLabel.setText(f"状态：识别中（{rounded_elapsed_time}s)")
-                if elapsed_time > 20:
+                if elapsed_time > Time_Limit:
                     return "无识别结果"
                 QApplication.processEvents()
         except Exception as e:
@@ -427,11 +427,13 @@ def init_vars():
     face_cascade_path = data_manager.face_cascade_path
     face_cascade = data_manager.face_cascade
 
-    global Cam_id, Img_Num, Rec_Num, Rec_Confidence # 全局变量
-    Cam_id = data_manager.Cam_id
+    global Cam_Id, Img_Num, Rec_Num, Rec_Confidence, Time_Limit # 全局变量
+    Cam_Id = data_manager.Cam_Id
     Img_Num = data_manager.Img_Num
     Rec_Num = data_manager.Rec_Num
     Rec_Confidence = data_manager.Rec_Confidence
+    Time_Limit = data_manager.Time_Limit
+
 
     global Path, Data_Path # 全局地址
     Path = data_manager.Path
