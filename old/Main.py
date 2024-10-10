@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 from PyQt5.QtCore import QTimer, Qt, pyqtSignal, QThread, QRegExp
 from PyQt5.QtGui import QPixmap, QImage, QRegExpValidator
-import Window
+from old import Window
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QMessageBox, QTableWidgetItem
 
@@ -82,7 +82,7 @@ class DataManager:
             return 2  # 学号为空的状态码
         tmpImgPath = os.path.join(Data_Path, "_tmp_img_")  # 定义临时图片文件夹的路径
         # 打开并读取 .data 文件
-        with open('data/.data', 'r', encoding='utf-8') as file:
+        with open('../data/.data', 'r', encoding='utf-8') as file:
             lines = file.readlines()
         # 第一行是总行数，跳过它
         total_lines = int(lines[0].strip())  # 获取第一行的行数
