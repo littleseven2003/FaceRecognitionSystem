@@ -26,6 +26,7 @@ class DataManager:
             # 读取人脸分类器路径
             face_cascade_path = config.get('FaceCascade', 'face_cascade_path',
                                            fallback=cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+            self.face_cascade_path = face_cascade_path
             self.face_cascade = cv2.CascadeClassifier(eval(face_cascade_path))
 
             # 读取系统参数

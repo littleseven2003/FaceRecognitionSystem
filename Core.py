@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+from typing import Union
 
 import cv2
 import numpy as np
@@ -16,53 +17,48 @@ import Window
 import DataManager
 
 # 全局实例
-
 camera = None  # 全局摄像头实例
 data_manager = None  # 全局数据管理器实例
 msgbox = None # 全局消息框实例
 
 # 类定义
-
 class MessageBox:
     @staticmethod
-    def show_warning(parent, title, message):
-        QMessageBox.warning(parent, title, message)
+    def warning(parent = None, message = None):
+        QMessageBox.warning(parent, "警告", message)
 
     @staticmethod
-    def show_information(parent, title, message):
-        QMessageBox.information(parent, title, message)
+    def info(parent = None, message = None):
+        QMessageBox.information(parent, "信息", message)
 
     @staticmethod
-    def show_error(parent, title, message):
-        QMessageBox.critical(parent, title, message)
+    def error(parent = None, message = None):
+        QMessageBox.critical(parent, "错误", message)
 
 class Camera:
-    def __init__(self, cam_id=0):
+    def __init__(self):
         # 初始化摄像头
-        self.cap = cv2.VideoCapture(cam_id)  # 打开摄像头设备，默认索引为 0
-        if not self.cap.isOpened():  # 检查摄像头是否成功打开
-            # raise Exception("Could not open video device")  # 如果摄像头未成功打开，抛出异常
-            QMessageBox.warning(self, "警告", "摄像头未成功打开")  # 显示警告消息框
+        self.cam = cv2.VideoCapture(Cam_id)  # 打开摄像头设备，默认索引为 0
+        if not self.cam.isOpened():  # 检查摄像头是否成功打开
+            print("摄像头初始化失败，程序中断！")
+            sys.exit()
 
     def read_frame(self):
         # 从摄像头读取一帧图像
-        ret, frame = self.cap.read()  # 读取摄像头的一帧图像，ret 表示是否成功，frame 为读到的图像
+        ret, frame = self.cam.read()  # 读取摄像头的一帧图像，ret 表示是否成功，frame 为读到的图像
         if ret:  # 如果成功读取到图像
             # 将图像从 BGR 转换为 RGB
-            # 将图像的颜色空间从 BGR 转换为 RGB
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             return frame  # 返回转换后的图像
-        # else:  # 如果未能成功读取图像
-        # raise Exception("Could not read frame from camera")  # 抛出异常
 
     @staticmethod
     def detect_faces(frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         # 使用 Haar 级联分类器检测人脸
         faces = data_manager.face_cascade.detectMultiScale(
-            gray,  # 输入的灰度图像
-            scaleFactor=1.1,  # 每次图像尺寸减小的比例因子
-            minNeighbors=5,  # 每个候选矩形应保留的最低邻居数
+            gray,               # 输入的灰度图像
+            scaleFactor=1.1,    # 每次图像尺寸减小的比例因子
+            minNeighbors=5,     # 每个候选矩形应保留的最低邻居数
             minSize=(150, 150)  # 检测窗口的最小尺寸
         )
         return faces  # 返回检测到的人脸列表
@@ -90,8 +86,7 @@ class Camera:
         return status  # 返回状态变量
 
     def release(self):
-        # 释放摄像头资源
-        self.cap.release()
+        self.cam.release()
 
 class TrainWorker(QThread):
 
@@ -174,10 +169,8 @@ class TrainWindow(QDialog, Window.Ui_TrainWindow):
             model_file_path = os.path.join(folder, model_file_name)  # 生成模型文件路径
             model_file_path = str(model_file_path)  # 确保路径是字符串
 
-            self.train_worker = TrainWorker(
-                folder, model_file_path)  # 创建TrainWorker线程
-            self.train_worker.training_finished.connect(
-                self.finish_training)  # 连接训练完成信号到finishTraining方法
+            self.train_worker = TrainWorker(folder, model_file_path)  # 创建TrainWorker线程
+            self.train_worker.training_finished.connect(self.finish_training)  # 连接训练完成信号到finishTraining方法
             self.train_worker.start()  # 启动TrainWorker线程
 
     def finish_training(self, success):
@@ -186,6 +179,7 @@ class TrainWindow(QDialog, Window.Ui_TrainWindow):
             self.accept()  # 接受并关闭当前窗口
         else:
             print("Training failed")  # 打印训练失败信息
+            msgbox.error(self, "训练失败")
             self.reject()  # 拒绝并关闭当前窗口
 
 class EntWindow(QDialog, Window.Ui_EntWindow):
@@ -211,10 +205,12 @@ class EntWindow(QDialog, Window.Ui_EntWindow):
             self.close()
         elif result == 1 or result == 2:
             self.delete()
-            QMessageBox.warning(self, "警告", "名字或学号不能为空")
+            # QMessageBox.warning(self, "警告", "名字或学号不能为空")
+            msgbox.warning(self, "名字或学号不能为空")
         elif result == 3:
             self.delete()
-            QMessageBox.warning(self, "警告", "学号不能重复")
+            # QMessageBox.warning(self, "警告", "学号不能重复")
+            msgbox.warning(self, "学号不能重复")
         train_window = TrainWindow(self.img_name, self.img_id, self)
         train_window.exec_()
 
@@ -270,13 +266,16 @@ class MngWindow(QDialog, Window.Ui_MngWindow):
     def delete_selected_row(self):
         current_row = self.tableWidget.currentRow()
         if current_row < 0:
-            QMessageBox.warning(self, "错误", "请选择要删除的行")
+            # QMessageBox.warning(self, "错误", "请选择要删除的行")
+            msgbox.warning(self, "请选择要删除的行")
             return
         folder_path = self.tableWidget.item(current_row, 2).text()
         if data_manager.delete_data(folder_path):
-            QMessageBox.information(self, "成功", "文件夹已删除")
+            # QMessageBox.information(self, "成功", "文件夹已删除")
+            msgbox.info(self, "文件夹已删除")
         else:
-            QMessageBox.warning(self, "错误", "文件夹不存在")
+            # QMessageBox.warning(self, "错误", "文件夹不存在")
+            msgbox.error(self, "文件夹不存在")
         self.load_table()
 
 class MainWindow(QMainWindow):
@@ -423,11 +422,27 @@ class MainWindow(QMainWindow):
         camera.release()
         super(MainWindow, self).closeEvent(event)
 
+def init_vars():
+    global face_cascade_path, face_cascade  # 全局分类器地址、分类器
+    face_cascade_path = data_manager.face_cascade_path
+    face_cascade = data_manager.face_cascade
+
+    global Cam_id, Img_Num, Rec_Num, Rec_Confidence # 全局变量
+    Cam_id = data_manager.Cam_id
+    Img_Num = data_manager.Img_Num
+    Rec_Num = data_manager.Rec_Num
+    Rec_Confidence = data_manager.Rec_Confidence
+
+    global Path, Data_Path # 全局地址
+    Path = data_manager.Path
+    Data_Path = data_manager.Data_Path
 
 if __name__ == "__main__":
+
     # 初始化全局实例
     msgbox = MessageBox()
     data_manager = DataManager.DataManager()
+    init_vars()
     camera = Camera()
 
     app = QApplication(sys.argv)
