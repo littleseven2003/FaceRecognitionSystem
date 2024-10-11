@@ -420,6 +420,10 @@ class MainWindow(QMainWindow):
             self.timer.start(20)
 
     def open_RecWindow(self):
+        if data_manager.Data_Num == 0:
+            msgbox.warning(self, "暂无人脸数据")
+            return
+
         self.timer.stop()
         self.student_id = self.recognize_face()
         self.student_name = data_manager.get_name(self.student_id)
