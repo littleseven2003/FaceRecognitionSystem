@@ -207,10 +207,13 @@ class EntWindow(QDialog, Window.Ui_EntWindow):
             self.delete()
             # QMessageBox.warning(self, "警告", "名字或学号不能为空")
             msgbox.warning(self, "名字或学号不能为空")
+            return
         elif result == 3:
             self.delete()
             # QMessageBox.warning(self, "警告", "学号不能重复")
             msgbox.warning(self, "学号不能重复")
+            return
+        # 在关闭 EntWindow 后弹出 TrainWindow
         train_window = TrainWindow(self.img_name, self.img_id, self)
         train_window.exec_()
 
