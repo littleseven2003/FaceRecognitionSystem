@@ -196,6 +196,7 @@ class EntWindow(QDialog, Window.Ui_EntWindow):
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
         self.okButton.clicked.connect(self.check_input)
+        self.exitButton.clicked.connect(self.close)
 
     def check_input(self):
         self.img_name = self.nameEdit.text()
