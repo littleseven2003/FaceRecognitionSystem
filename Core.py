@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+from dataclasses import dataclass
 from typing import Union
 
 import cv2
@@ -196,14 +197,18 @@ class EntWindow(QDialog, Window.Ui_EntWindow):
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
         self.okButton.clicked.connect(self.check_input)
-        self.exitButton.clicked.connect(self.close)
+        self.exitButton.clicked.connect(self.check_close)
+
+    def check_close(self):
+        data_manager.del_tmp_dir()
+        self.close()
 
     def check_input(self):
         self.img_name = self.nameEdit.text()
         self.img_id = self.idEdit.text()
         result = data_manager.init_img_dir(self.img_name, self.img_id)
         if result == 0:
-            self.close()
+            self.check_close()
         elif result == 1 or result == 2:
             self.delete()
             # QMessageBox.warning(self, "警告", "名字或学号不能为空")
@@ -365,6 +370,7 @@ class MainWindow(QMainWindow):
                 self.ui.loadingLabel.setText(f"状态：拍照中（{rounded_elapsed_time}s)")
                 if elapsed_time > Ent_Time_Limit:
                     msgbox.warning(self, "录入超时")
+                    data_manager.delete_data()
                     return
 
                 frame = camera.read_frame()
