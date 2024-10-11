@@ -242,10 +242,15 @@ class MngWindow(QDialog, Window.Ui_MngWindow):
         super(MngWindow, self).__init__(parent)
         self.showFullScreen()
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+
         self.setupUi(self)
+        self.nameEdit.setReadOnly(True)
+        self.idEdit.setReadOnly(True)
+
         self.setWindowFlag(QtCore.Qt.Dialog)
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
+
         self.backButton.clicked.connect(self.close)
         self.load_table()
         self.tableWidget.cellDoubleClicked.connect(self.open_folder)
