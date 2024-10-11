@@ -295,6 +295,8 @@ class MngWindow(QDialog, Window.Ui_MngWindow):
             # QMessageBox.warning(self, "错误", "文件夹不存在")
             msgbox.error(self, "文件夹不存在")
         self.load_table()
+        self.idEdit.clear()
+        self.nameEdit.clear()
 
 class MainWindow(QMainWindow):
     def __init__(self):
