@@ -214,6 +214,10 @@ class EntWindow(QDialog, Window.Ui_EntWindow):
             return
         elif result == 4:
             self.delete()
+            msgbox.warning(self, "姓名当中不应包含‘_’")
+            return
+        elif result == 5:
+            self.delete()
             # QMessageBox.warning(self, "警告", "学号不能重复")
             msgbox.warning(self, "学号不能重复")
             return
