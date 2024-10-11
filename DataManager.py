@@ -101,12 +101,14 @@ class DataManager:
             return 1
         if img_id == "":
             return 2
+        if img_id.isdigit() == False or len(img_id) != 11:
+            return 3
         tmp_dir = os.path.join(Data_Path, "_tmp_img_")
         with open(os.path.join(Data_Path, '.data'), 'r', encoding='utf-8') as file:
             lines = file.readlines()
         numbers_list = [line.split('_', 1)[0] for line in lines[1:] if '_' in line]
         if img_id in numbers_list:
-            return 3
+            return 4
         new_folder_path = os.path.join(Data_Path, img_id)
         if os.path.exists(tmp_dir):
             os.rename(tmp_dir, new_folder_path)

@@ -210,6 +210,10 @@ class EntWindow(QDialog, Window.Ui_EntWindow):
             return
         elif result == 3:
             self.delete()
+            msgbox.warning(self, "学号应为11为数字")
+            return
+        elif result == 4:
+            self.delete()
             # QMessageBox.warning(self, "警告", "学号不能重复")
             msgbox.warning(self, "学号不能重复")
             return
