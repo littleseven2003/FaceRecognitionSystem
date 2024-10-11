@@ -21,7 +21,9 @@ class DataManager:
         config = configparser.ConfigParser()
 
         try:
-            config.read('.config')
+            # 使用 open 方法指定编码
+            with open('.config', 'r', encoding='utf-8') as configfile:
+                config.read_file(configfile)
 
             # 读取人脸分类器路径
             face_cascade_path = config.get('FaceCascade', 'face_cascade_path',
