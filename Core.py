@@ -222,6 +222,8 @@ class EntWindow(QDialog, Window.Ui_EntWindow):
             msgbox.warning(self, "学号不能重复")
             return
         # 在关闭 EntWindow 后弹出 TrainWindow
+        data_manager.update_data_file()
+
         train_window = TrainWindow(self.img_name, self.img_id, self)
         train_window.exec_()
 
@@ -420,6 +422,7 @@ class MainWindow(QMainWindow):
             self.timer.start(20)
 
     def open_RecWindow(self):
+        data_manager.update_data_file()
         if data_manager.Data_Num == 0:
             msgbox.warning(self, "暂无人脸数据")
             return

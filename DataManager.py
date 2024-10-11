@@ -49,8 +49,7 @@ class DataManager:
         self.Data_Path = Data_Path
 
 
-    @staticmethod
-    def update_data_file():
+    def update_data_file(self):
         subfolders = [f.name for f in os.scandir(Data_Path) if f.is_dir()]
         num_subfolders = len(subfolders)
         data_file_path = os.path.join(Data_Path, '.data')
@@ -65,7 +64,7 @@ class DataManager:
                             combined_line = f"{lines[0].strip()}_{lines[1].strip()}"
                             f.write(f"{combined_line}\n")
         with open(data_file_path, 'r', encoding='utf-8') as f:
-            Data_Num = int(f.readline().strip())
+            self.Data_Num = int(f.readline().strip())
 
     @staticmethod
     def load_data():
