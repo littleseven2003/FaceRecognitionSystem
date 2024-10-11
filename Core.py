@@ -354,9 +354,19 @@ class MainWindow(QMainWindow):
     def capture_img(self):
         self.change_ui(False, "状态：拍照中", 0)
         data_manager.make_tmp_dir()
+        start_time = time.time()
+
         try:
             index = 0
             while index < data_manager.Img_Num:
+                current_time = time.time()
+                elapsed_time = current_time - start_time
+                rounded_elapsed_time = str(round(elapsed_time))
+                self.ui.loadingLabel.setText(f"状态：拍照中（{rounded_elapsed_time}s)")
+                if elapsed_time > Ent_Time_Limit:
+                    msgbox.warning(self, "录入超时")
+                    return
+
                 frame = camera.read_frame()
                 faces, frame = camera.detect_and_draw_faces(frame)
                 status = camera.save_img(frame, faces, index)
@@ -418,7 +428,7 @@ class MainWindow(QMainWindow):
                 elapsed_time = current_time - start_time
                 rounded_elapsed_time = str(round(elapsed_time))
                 self.ui.loadingLabel.setText(f"状态：识别中（{rounded_elapsed_time}s)")
-                if elapsed_time > Time_Limit:
+                if elapsed_time > Rec_Time_Limit:
                     return "无识别结果"
                 QApplication.processEvents()
         except Exception as e:
@@ -456,12 +466,13 @@ def init_vars():
     face_cascade_path = data_manager.face_cascade_path
     face_cascade = data_manager.face_cascade
 
-    global Cam_Id, Img_Num, Rec_Num, Rec_Confidence, Time_Limit # 全局变量
+    global Cam_Id, Img_Num, Rec_Num, Rec_Confidence, Ent_Time_Limit, Rec_Time_Limit # 全局变量
     Cam_Id = data_manager.Cam_Id
     Img_Num = data_manager.Img_Num
     Rec_Num = data_manager.Rec_Num
     Rec_Confidence = data_manager.Rec_Confidence
-    Time_Limit = data_manager.Time_Limit
+    Ent_Time_Limit = data_manager.Ent_Time_Limit
+    Rec_Time_Limit = data_manager.Rec_Time_Limit
 
 
     global Path, Data_Path # 全局地址

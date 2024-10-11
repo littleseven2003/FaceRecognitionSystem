@@ -36,7 +36,8 @@ class DataManager:
             self.Img_Num = config.getint('SystemParameters', 'Number_of_img', fallback=5)
             self.Rec_Num = config.getint('SystemParameters', 'Number_of_recognition', fallback=20)
             self.Rec_Confidence = config.getint('SystemParameters', 'Confidence_of_recognition', fallback=50)
-            self.Time_Limit = config.getint('SystemParameters', 'Time_limit', fallback=20)
+            self.Ent_Time_Limit = config.getint('SystemParameters', 'Enter_Time_Limit', fallback=20)
+            self.Rec_Time_Limit = config.getint('SystemParameters', 'Recognize_Time_limit', fallback=20)
 
         except Exception as e:
             print(f"读取配置文件出错: {e}")
