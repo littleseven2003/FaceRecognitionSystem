@@ -49,8 +49,8 @@ class DataManager:
         self.Path = Path
         self.Data_Path = Data_Path
 
-
     def update_data_file(self):
+        self.del_tmp_dir()
         subfolders = [f.name for f in os.scandir(Data_Path) if f.is_dir()]
         num_subfolders = len(subfolders)
         data_file_path = os.path.join(Data_Path, '.data')
@@ -95,6 +95,12 @@ class DataManager:
         else:
             shutil.rmtree(tmp_img_path)
             os.mkdir(tmp_img_path)
+
+    @staticmethod
+    def del_tmp_dir():
+        tmp_img_path = os.path.join(Data_Path, "_tmp_img_")
+        if os.path.exists(tmp_img_path):
+            shutil.rmtree(tmp_img_path)
 
     def init_img_dir(self, img_name, img_id) -> int:
         if img_name == "":
