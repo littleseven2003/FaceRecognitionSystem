@@ -253,6 +253,7 @@ class MngWindow(QDialog, Window.Ui_MngWindow):
         self.setupUi(self)
         self.nameEdit.setReadOnly(True)
         self.idEdit.setReadOnly(True)
+        self.delButton.setEnabled(False)
 
         self.setWindowFlag(QtCore.Qt.Dialog)
         self.setWindowModality(QtCore.Qt.ApplicationModal)
@@ -277,6 +278,7 @@ class MngWindow(QDialog, Window.Ui_MngWindow):
             self.tableWidget.setItem(row, 2, QTableWidgetItem(folder_path))
 
     def display_info(self, row):
+        self.delButton.setEnabled(True)
         student_name = self.tableWidget.item(row, 0).text()
         student_id = self.tableWidget.item(row, 1).text()
         self.nameEdit.setText(student_name)
@@ -298,6 +300,7 @@ class MngWindow(QDialog, Window.Ui_MngWindow):
         self.load_table()
         self.idEdit.clear()
         self.nameEdit.clear()
+        self.delButton.setEnabled(False)
 
 class MainWindow(QMainWindow):
     def __init__(self):
