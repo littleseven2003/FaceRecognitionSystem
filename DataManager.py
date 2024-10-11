@@ -144,4 +144,4 @@ class DataManager:
                 lines = f.readlines()
                 if len(lines) >= 2:
                     return lines[1].strip()
-        return "Unknown"
+        return "无识别结果"
