@@ -341,10 +341,10 @@ class MainWindow(QMainWindow):
 
     def display_frame(self, frame):
         height, width, channel = frame.shape
-        bytesPerLine = 3 * width
-        qImg = QImage(frame.data, width, height, bytesPerLine, QImage.Format_RGB888)
+        bytesPerLine = 3 * width # 设置每行字节数，因为是RGB三通道，每个像素三个字节
+        qImg = QImage(frame.data, width, height, bytesPerLine, QImage.Format_RGB888) # QImage用于处理和现实图像数据
         if not qImg.isNull():
-            pixmap = QPixmap.fromImage(qImg)
+            pixmap = QPixmap.fromImage(qImg) # QPixmap用于绘制图像
             scaled_pixmap = pixmap.scaled(self.ui.camLabel.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
             self.ui.camLabel.setPixmap(scaled_pixmap)
 
@@ -380,7 +380,7 @@ class MainWindow(QMainWindow):
                     index += 1
                 self.display_frame(frame)
                 self.ui.loadingBar.setValue(int((index / data_manager.Img_Num) * 100))
-                QApplication.processEvents()
+                QApplication.processEvents() # 处理循环时间，保持程序响应
 
             self.ent_window = EntWindow(self)
             self.ent_window.exec_()
@@ -426,7 +426,7 @@ class MainWindow(QMainWindow):
                             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
                 self.display_frame(frame)
                 for student_id, count in recognized_count.items():
-                    progress = min(int((count / data_manager.Rec_Num) * 100), 100)
+                    progress = max(int((count / data_manager.Rec_Num) * 100), 100)
                     self.ui.loadingBar.setValue(progress)
                     if count >= data_manager.Rec_Num:
                         return student_id
