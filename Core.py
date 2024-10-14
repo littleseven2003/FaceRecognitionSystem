@@ -342,7 +342,7 @@ class MainWindow(QMainWindow):
     def display_frame(self, frame):
         height, width, channel = frame.shape
         bytesPerLine = 3 * width # 设置每行字节数，因为是RGB三通道，每个像素三个字节
-        qImg = QImage(frame.data, width, height, bytesPerLine, QImage.Format_RGB888) # QImage用于处理和现实图像数据
+        qImg = QImage(frame.data, width, height, bytesPerLine, QImage.Format_RGB888) # QImage用于处理和显示图像数据
         if not qImg.isNull():
             pixmap = QPixmap.fromImage(qImg) # QPixmap用于绘制图像
             scaled_pixmap = pixmap.scaled(self.ui.camLabel.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
@@ -370,7 +370,7 @@ class MainWindow(QMainWindow):
                 self.ui.loadingLabel.setText(f"状态：拍照中（{rounded_elapsed_time}s)")
                 if elapsed_time > Ent_Time_Limit:
                     msgbox.warning(self, "录入超时")
-                    data_manager.delete_data()
+                    data_manager.del_tmp_dir()
                     return
 
                 frame = camera.read_frame()
