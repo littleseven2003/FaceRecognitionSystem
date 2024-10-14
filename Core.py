@@ -407,6 +407,7 @@ class MainWindow(QMainWindow):
         self.model_recognizers = self.load_models()
         recognized_count = {}
         start_time = time.time()
+        max_progress = 0
         try:
             while True:
                 frame = camera.read_frame()
@@ -425,8 +426,10 @@ class MainWindow(QMainWindow):
                         else:
                             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
                 self.display_frame(frame)
+
                 for student_id, count in recognized_count.items():
-                    progress = max(int((count / data_manager.Rec_Num) * 100), 100)
+                    max_progress = max(max_progress, int((count / data_manager.Rec_Num) * 100))
+                    progress = min(max_progress, 100)
                     self.ui.loadingBar.setValue(progress)
                     if count >= data_manager.Rec_Num:
                         return student_id
