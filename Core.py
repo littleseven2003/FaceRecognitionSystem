@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+from dataclasses import dataclass
 from typing import Union
 
 import cv2
@@ -196,21 +197,39 @@ class EntWindow(QDialog, Window.Ui_EntWindow):
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
         self.okButton.clicked.connect(self.check_input)
+        self.exitButton.clicked.connect(self.check_close)
+
+    def check_close(self):
+        data_manager.del_tmp_dir()
+        self.close()
 
     def check_input(self):
         self.img_name = self.nameEdit.text()
         self.img_id = self.idEdit.text()
         result = data_manager.init_img_dir(self.img_name, self.img_id)
         if result == 0:
-            self.close()
+            self.check_close()
         elif result == 1 or result == 2:
             self.delete()
             # QMessageBox.warning(self, "警告", "名字或学号不能为空")
             msgbox.warning(self, "名字或学号不能为空")
+            return
         elif result == 3:
+            self.delete()
+            msgbox.warning(self, "学号应为11为数字")
+            return
+        elif result == 4:
+            self.delete()
+            msgbox.warning(self, "姓名当中不应包含‘_’")
+            return
+        elif result == 5:
             self.delete()
             # QMessageBox.warning(self, "警告", "学号不能重复")
             msgbox.warning(self, "学号不能重复")
+            return
+        # 在关闭 EntWindow 后弹出 TrainWindow
+        data_manager.update_data_file()
+
         train_window = TrainWindow(self.img_name, self.img_id, self)
         train_window.exec_()
 
@@ -235,10 +254,16 @@ class MngWindow(QDialog, Window.Ui_MngWindow):
         super(MngWindow, self).__init__(parent)
         self.showFullScreen()
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+
         self.setupUi(self)
+        self.nameEdit.setReadOnly(True)
+        self.idEdit.setReadOnly(True)
+        self.delButton.setEnabled(False)
+
         self.setWindowFlag(QtCore.Qt.Dialog)
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
+
         self.backButton.clicked.connect(self.close)
         self.load_table()
         self.tableWidget.cellDoubleClicked.connect(self.open_folder)
@@ -258,6 +283,7 @@ class MngWindow(QDialog, Window.Ui_MngWindow):
             self.tableWidget.setItem(row, 2, QTableWidgetItem(folder_path))
 
     def display_info(self, row):
+        self.delButton.setEnabled(True)
         student_name = self.tableWidget.item(row, 0).text()
         student_id = self.tableWidget.item(row, 1).text()
         self.nameEdit.setText(student_name)
@@ -277,6 +303,9 @@ class MngWindow(QDialog, Window.Ui_MngWindow):
             # QMessageBox.warning(self, "错误", "文件夹不存在")
             msgbox.error(self, "文件夹不存在")
         self.load_table()
+        self.idEdit.clear()
+        self.nameEdit.clear()
+        self.delButton.setEnabled(False)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -330,9 +359,20 @@ class MainWindow(QMainWindow):
     def capture_img(self):
         self.change_ui(False, "状态：拍照中", 0)
         data_manager.make_tmp_dir()
+        start_time = time.time()
+
         try:
             index = 0
             while index < data_manager.Img_Num:
+                current_time = time.time()
+                elapsed_time = current_time - start_time
+                rounded_elapsed_time = str(round(elapsed_time))
+                self.ui.loadingLabel.setText(f"状态：拍照中（{rounded_elapsed_time}s)")
+                if elapsed_time > Ent_Time_Limit:
+                    msgbox.warning(self, "录入超时")
+                    data_manager.delete_data()
+                    return
+
                 frame = camera.read_frame()
                 faces, frame = camera.detect_and_draw_faces(frame)
                 status = camera.save_img(frame, faces, index)
@@ -394,7 +434,7 @@ class MainWindow(QMainWindow):
                 elapsed_time = current_time - start_time
                 rounded_elapsed_time = str(round(elapsed_time))
                 self.ui.loadingLabel.setText(f"状态：识别中（{rounded_elapsed_time}s)")
-                if elapsed_time > Time_Limit:
+                if elapsed_time > Rec_Time_Limit:
                     return "无识别结果"
                 QApplication.processEvents()
         except Exception as e:
@@ -404,6 +444,11 @@ class MainWindow(QMainWindow):
             self.timer.start(20)
 
     def open_RecWindow(self):
+        data_manager.update_data_file()
+        if data_manager.Data_Num == 0:
+            msgbox.warning(self, "暂无人脸数据")
+            return
+
         self.timer.stop()
         self.student_id = self.recognize_face()
         self.student_name = data_manager.get_name(self.student_id)
@@ -427,12 +472,13 @@ def init_vars():
     face_cascade_path = data_manager.face_cascade_path
     face_cascade = data_manager.face_cascade
 
-    global Cam_Id, Img_Num, Rec_Num, Rec_Confidence, Time_Limit # 全局变量
+    global Cam_Id, Img_Num, Rec_Num, Rec_Confidence, Ent_Time_Limit, Rec_Time_Limit # 全局变量
     Cam_Id = data_manager.Cam_Id
     Img_Num = data_manager.Img_Num
     Rec_Num = data_manager.Rec_Num
     Rec_Confidence = data_manager.Rec_Confidence
-    Time_Limit = data_manager.Time_Limit
+    Ent_Time_Limit = data_manager.Ent_Time_Limit
+    Rec_Time_Limit = data_manager.Rec_Time_Limit
 
 
     global Path, Data_Path # 全局地址

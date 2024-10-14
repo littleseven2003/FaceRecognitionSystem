@@ -21,7 +21,9 @@ class DataManager:
         config = configparser.ConfigParser()
 
         try:
-            config.read('.config')
+            # 使用 open 方法指定编码
+            with open('.config', 'r', encoding='utf-8') as configfile:
+                config.read_file(configfile)
 
             # 读取人脸分类器路径
             face_cascade_path = config.get('FaceCascade', 'face_cascade_path',
@@ -34,7 +36,8 @@ class DataManager:
             self.Img_Num = config.getint('SystemParameters', 'Number_of_img', fallback=5)
             self.Rec_Num = config.getint('SystemParameters', 'Number_of_recognition', fallback=20)
             self.Rec_Confidence = config.getint('SystemParameters', 'Confidence_of_recognition', fallback=50)
-            self.Time_Limit = config.getint('SystemParameters', 'Time_limit', fallback=20)
+            self.Ent_Time_Limit = config.getint('SystemParameters', 'Enter_Time_Limit', fallback=20)
+            self.Rec_Time_Limit = config.getint('SystemParameters', 'Recognize_Time_limit', fallback=20)
 
         except Exception as e:
             print(f"读取配置文件出错: {e}")
@@ -46,9 +49,8 @@ class DataManager:
         self.Path = Path
         self.Data_Path = Data_Path
 
-
-    @staticmethod
-    def update_data_file():
+    def update_data_file(self):
+        self.del_tmp_dir()
         subfolders = [f.name for f in os.scandir(Data_Path) if f.is_dir()]
         num_subfolders = len(subfolders)
         data_file_path = os.path.join(Data_Path, '.data')
@@ -63,7 +65,7 @@ class DataManager:
                             combined_line = f"{lines[0].strip()}_{lines[1].strip()}"
                             f.write(f"{combined_line}\n")
         with open(data_file_path, 'r', encoding='utf-8') as f:
-            Data_Num = int(f.readline().strip())
+            self.Data_Num = int(f.readline().strip())
 
     @staticmethod
     def load_data():
@@ -94,17 +96,27 @@ class DataManager:
             shutil.rmtree(tmp_img_path)
             os.mkdir(tmp_img_path)
 
+    @staticmethod
+    def del_tmp_dir():
+        tmp_img_path = os.path.join(Data_Path, "_tmp_img_")
+        if os.path.exists(tmp_img_path):
+            shutil.rmtree(tmp_img_path)
+
     def init_img_dir(self, img_name, img_id) -> int:
         if img_name == "":
             return 1
         if img_id == "":
             return 2
+        if img_id.isdigit() == False or len(img_id) != 11:
+            return 3
+        if "_" in img_name:
+            return 4
         tmp_dir = os.path.join(Data_Path, "_tmp_img_")
         with open(os.path.join(Data_Path, '.data'), 'r', encoding='utf-8') as file:
             lines = file.readlines()
         numbers_list = [line.split('_', 1)[0] for line in lines[1:] if '_' in line]
         if img_id in numbers_list:
-            return 3
+            return 5
         new_folder_path = os.path.join(Data_Path, img_id)
         if os.path.exists(tmp_dir):
             os.rename(tmp_dir, new_folder_path)
@@ -132,4 +144,4 @@ class DataManager:
                 lines = f.readlines()
                 if len(lines) >= 2:
                     return lines[1].strip()
-        return "Unknown"
+        return "无识别结果"
